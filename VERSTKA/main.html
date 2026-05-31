@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>RETRO GAME FORUM | Аркадный портал</title>
+    <style>
+        /* ========== GOOGLE FONT ========== */
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        /* ========== ПЕРЕМЕННЫЕ ========== */
+        :root {
+            --primary: #ff0;
+            --secondary: #0f0;
+            --ghost-red: #f00;
+            --ghost-pink: #f0f;
+            --ghost-cyan: #0ff;
+            --ghost-orange: #ff8c00;
+            --bg-dark: #000;
+            --bg-light: #111;
+            --neon-glow: 0 0 10px currentColor, 0 0 20px currentColor;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23ff0" /></svg>') 12 12, auto;
+        }
+
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background-color: var(--bg-dark);
+            color: var(--secondary);
+            line-height: 1.6;
+            font-size: 12px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Эффект ЭЛТ (кинескоп) */
+        .crt::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0px, rgba(0,255,0,0.05) 1px, transparent 2px);
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: rgba(0,255,0,0.1);
+            opacity: 0.75;
+            animation: scan 8s linear infinite;
+            pointer-events: none;
+            z-index: 101;
+        }
+
+        @keyframes scan {
+            0% { top: -10px; }
+            100% { top: 110%; }
+        }
+
+        /* Тряска для кликов */
+        @keyframes shake {
+            0% { transform: translate(0); }
+            25% { transform: translate(-5px, 0); }
+            50% { transform: translate(5px, 0); }
+            75% { transform: translate(-2px, 0); }
+            100% { transform: translate(0); }
+        }
+
+        /* Бегущая строка */
+        .marquee {
+            background: #222;
+            color: var(--primary);
+            padding: 8px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            border: 2px solid var(--secondary);
+            margin-bottom: 20px;
+        }
+
+        .marquee-content {
+            display: inline-block;
+            animation: marquee 20s linear infinite;
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Шапка с Пакманом */
+        .pacman-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .pacman-animation {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #000;
+            padding: 10px;
+            border: 2px solid var(--secondary);
+            border-radius: 30px;
+        }
+
+        .pacman {
+            width: 0;
+            height: 0;
+            border-right: 15px solid transparent;
+            border-top: 15px solid var(--primary);
+            border-left: 15px solid var(--primary);
+            border-bottom: 15px solid var(--primary);
+            border-radius: 50%;
+            animation: chomp 0.3s infinite;
+        }
+
+        @keyframes chomp {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(30deg); }
+        }
+
+        .ghost {
+            width: 25px;
+            height: 25px;
+            border-radius: 50% 50% 0 0;
+            position: relative;
+            animation: float 2s infinite;
+        }
+
+        .ghost::after {
+            content: "";
+            position: absolute;
+            bottom: -6px;
+            left: 4px;
+            width: 6px;
+            height: 6px;
+            background: inherit;
+            border-radius: 50%;
+            box-shadow: 8px 0 0 inherit, 16px 0 0 inherit;
+        }
+
+        .ghost.red { background-color: var(--ghost-red); }
+        .ghost.pink { background-color: var(--ghost-pink); }
+        .ghost.cyan { background-color: var(--ghost-cyan); }
+        .ghost.orange { background-color: var(--ghost-orange); }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            background: #fff;
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        h1 {
+            font-size: 20px;
+            color: var(--primary);
+            text-shadow: 4px 4px 0 blue, 0 0 20px var(--primary);
+            letter-spacing: 2px;
+        }
+
+        .online-indicator {
+            background: #111;
+            border: 2px solid var(--secondary);
+            padding: 10px 20px;
+            color: var(--ghost-cyan);
+            font-size: 14px;
+            box-shadow: var(--neon-glow);
+        }
+
+        /* Навигация */
+        nav ul {
+            display: flex;
+            justify-content: space-around;
+            list-style: none;
+            border: 4px solid var(--secondary);
+            padding: 10px;
+            background: linear-gradient(45deg, #000, #222);
+            box-shadow: 0 0 20px var(--secondary);
+        }
+
+        nav a {
+            color: var(--secondary);
+            text-decoration: none;
+            padding: 12px 24px;
+            border: 2px solid transparent;
+            position: relative;
+            transition: 0.3s;
+            font-size: 14px;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+
+        nav a::before {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--primary);
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: perspective(400px) rotateX(90deg);
+            transform-origin: bottom;
+            transition: 0.3s;
+            pointer-events: none;
+        }
+
+        nav a:hover::before,
+        nav a.active::before {
+            transform: perspective(400px) rotateX(0deg);
+        }
+
+        nav a:hover,
+        nav a.active {
+            color: transparent;
+        }
+
+        /* Герой */
+        .hero {
+            text-align: center;
+            margin: 50px 0;
+        }
+
+        .glitch {
+            font-size: 24px;
+            color: var(--primary);
+            position: relative;
+            margin-bottom: 30px;
+            animation: glitch 3s infinite;
+        }
+
+        .glitch::before,
+        .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+        }
+
+        .glitch::before {
+            color: #0ff;
+            z-index: -1;
+            animation: glitch-offset 0.3s infinite linear;
+        }
+
+        .glitch::after {
+            color: #f0f;
+            z-index: -2;
+            animation: glitch-offset2 0.2s infinite linear;
+        }
+
+        @keyframes glitch {
+            2%, 64% { transform: skew(0deg, 0deg); }
+            4%, 60% { transform: skew(0deg, 0deg); }
+            62% { transform: skew(0deg, 10deg); }
+        }
+        @keyframes glitch-offset {
+            2% { transform: translate(2px, 0); }
+            4% { transform: translate(-2px, 0); }
+            62% { transform: translate(0, 2px); }
+        }
+        @keyframes glitch-offset2 {
+            2% { transform: translate(0, 2px); }
+            4% { transform: translate(0, -2px); }
+            62% { transform: translate(2px, 0); }
+        }
+
+        /* Аркадный автомат */
+        .arcade-cabinet {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #8B4513;
+            border: 8px solid #654321;
+            border-radius: 20px 20px 10px 10px;
+            padding: 20px;
+            box-shadow: 0 20px 30px rgba(0,255,0,0.3), inset 0 -10px 20px rgba(0,0,0,0.8);
+        }
+
+        .cabinet-top {
+            height: 40px;
+            background: #A0522D;
+            border-radius: 10px 10px 0 0;
+            margin: -20px -20px 20px -20px;
+            border-bottom: 4px solid #654321;
+        }
+
+        .cabinet-screen {
+            background: #000;
+            border: 8px solid #444;
+            border-radius: 10px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-preview {
+            background: #111;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* Игровая зона внутри телевизора */
+        .pacman-game {
+            position: relative;
+            width: 100%;
+            height: 180px;
+            overflow: hidden;
+        }
+
+        .pacman-character {
+            position: absolute;
+            bottom: 20px;
+            left: 10px;
+            width: 0;
+            height: 0;
+            border-right: 15px solid transparent;
+            border-top: 15px solid var(--primary);
+            border-left: 15px solid var(--primary);
+            border-bottom: 15px solid var(--primary);
+            border-radius: 50%;
+            animation: chomp 0.3s infinite, movePacman 8s linear infinite;
+            z-index: 10;
+        }
+
+        @keyframes movePacman {
+            0% { left: 10px; }
+            25% { left: 70%; }
+            50% { left: 10px; }
+            75% { left: 70%; }
+            100% { left: 10px; }
+        }
+
+        .ghost-character {
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            border-radius: 50% 50% 0 0;
+            bottom: 20px;
+            animation: float 2s infinite;
+        }
+
+        .ghost-character::after {
+            content: "";
+            position: absolute;
+            bottom: -6px;
+            left: 4px;
+            width: 6px;
+            height: 6px;
+            background: inherit;
+            border-radius: 50%;
+            box-shadow: 8px 0 0 inherit, 16px 0 0 inherit;
+        }
+
+        .red-ghost { background-color: var(--ghost-red); left: 70%; animation: moveGhost1 6s infinite; }
+        .pink-ghost { background-color: var(--ghost-pink); left: 50%; animation: moveGhost2 7s infinite; }
+        .cyan-ghost { background-color: var(--ghost-cyan); left: 30%; animation: moveGhost3 5s infinite; }
+        .orange-ghost { background-color: var(--ghost-orange); left: 10%; animation: moveGhost4 9s infinite; }
+
+        @keyframes moveGhost1 {
+            0% { left: 70%; bottom: 20px; }
+            25% { left: 10%; bottom: 50px; }
+            50% { left: 70%; bottom: 80px; }
+            75% { left: 90%; bottom: 40px; }
+            100% { left: 70%; bottom: 20px; }
+        }
+        @keyframes moveGhost2 {
+            0% { left: 50%; bottom: 20px; }
+            33% { left: 80%; bottom: 60px; }
+            66% { left: 20%; bottom: 90px; }
+            100% { left: 50%; bottom: 20px; }
+        }
+        @keyframes moveGhost3 {
+            0% { left: 30%; bottom: 20px; }
+            40% { left: 60%; bottom: 100px; }
+            80% { left: 10%; bottom: 50px; }
+            100% { left: 30%; bottom: 20px; }
+        }
+        @keyframes moveGhost4 {
+            0% { left: 10%; bottom: 20px; }
+            30% { left: 40%; bottom: 70px; }
+            70% { left: 80%; bottom: 30px; }
+            100% { left: 10%; bottom: 20px; }
+        }
+
+        .dot-row {
+            position: absolute;
+            bottom: 15px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            padding: 0 10px;
+            animation: fadeDots 3s infinite;
+        }
+
+        .game-dot {
+            width: 6px;
+            height: 6px;
+            background: #fff;
+            border-radius: 50%;
+            opacity: 1;
+        }
+
+        @keyframes fadeDots {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .screen-glow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, rgba(0,255,0,0.2), transparent 70%);
+            pointer-events: none;
+            animation: glowPulse 3s infinite;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* Анимация распада на пиксели */
+        @keyframes pixelDissolve {
+            0% { opacity: 1; transform: scale(1); filter: blur(0);}
+            20% { opacity: 0.8; transform: scale(0.9) rotate(5deg); filter: blur(1px);}
+            40% { opacity: 0.6; transform: scale(0.7) rotate(-5deg) translateX(5px); filter: blur(2px);}
+            60% { opacity: 0.4; transform: scale(0.5) rotate(5deg) translateY(-5px); filter: blur(3px);}
+            80% { opacity: 0.2; transform: scale(0.3) rotate(-5deg) translate(10px, 10px); filter: blur(4px);}
+            100% { opacity: 0; transform: scale(0) rotate(0) translate(20px, -20px); filter: blur(5px);}
+        }
+
+        .ghost-character.dissolve {
+            animation: pixelDissolve 0.5s forwards;
+            pointer-events: none;
+        }
+
+        .cabinet-controls {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .joystick {
+            width: 50px;
+            height: 50px;
+            background: #333;
+            border-radius: 50%;
+            border: 4px solid #777;
+            position: relative;
+            box-shadow: 0 4px 0 #222;
+        }
+
+        .joystick::after {
+            content: "";
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 30px;
+            height: 30px;
+            background: #f00;
+            border-radius: 50%;
+        }
+
+        .button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            box-shadow: 0 5px 0 rgba(0,0,0,0.5);
+            transition: 0.1s;
+            cursor: pointer;
+        }
+
+        .button:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 rgba(0,0,0,0.5);
+        }
+
+        .button.red { background: var(--ghost-red); }
+        .button.blue { background: var(--ghost-cyan); }
+        .button.yellow { background: var(--primary); }
+
+        /* Карточки разделов */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin: 0 15px;
+        }
+
+        .feature-card {
+            background: linear-gradient(145deg, #111, #222);
+            border: 4px solid var(--secondary);
+            border-radius: 10px;
+            padding: 30px 20px;
+            text-align: center;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+        }
+
+        .feature-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 30px var(--primary);
+        }
+
+        .feature-card:hover .enter-btn {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 20px var(--primary);
+        }
+
+        .card-icon {
+            font-size: 56px;
+            display: block;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 8px var(--secondary));
+        }
+
+        .feature-card h3 {
+            color: var(--primary);
+            font-size: 18px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .feature-card p {
+            color: var(--secondary);
+            font-size: 12px;
+            line-height: 1.8;
+            margin-bottom: 25px;
+        }
+
+        .enter-btn {
+            display: inline-block;
+            color: var(--primary);
+            font-size: 14px;
+            background: #000;
+            padding: 12px 25px;
+            border: 2px solid var(--primary);
+            border-radius: 4px;
+            text-decoration: none;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Таблица рекордов */
+        .highscores {
+            margin: 60px 0;
+        }
+
+        .scoreboard {
+            max-width: 400px;
+            margin: 0 auto;
+            background: #111;
+            border: 4px solid var(--primary);
+            padding: 20px;
+            box-shadow: 0 0 40px var(--primary);
+        }
+
+        .scoreboard h3 {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        .score-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 10px;
+            border-bottom: 1px dashed var(--secondary);
+            color: #fff;
+            font-size: 10px;
+        }
+
+        .score-row span:first-child { color: var(--secondary); }
+        .score-row span:last-child { color: var(--primary); }
+
+        .latest-discussions { margin: 50px 0; }
+        .topics-grid {
+            display: grid;
+            gap: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .topic-item {
+            background: #111;
+            border: 2px solid var(--secondary);
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: 0.3s;
+        }
+
+        .topic-item:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 20px var(--primary);
+            transform: translateX(5px);
+        }
+
+        .topic-icon { font-size: 24px; }
+        .topic-info h4 { color: var(--primary); margin-bottom: 5px; }
+        .topic-info p { color: var(--ghost-cyan); font-size: 8px; }
+
+        /* Футер */
+        footer {
+            margin-top: 60px;
+            padding: 20px 0;
+            border-top: 4px solid var(--secondary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .footer-left { display: flex; gap: 30px; }
+        .player-indicator { color: var(--primary); animation: blink 1s infinite; }
+        .highscore { color: var(--ghost-cyan); }
+
+        .arcade-btn {
+            background: #111;
+            border: 3px solid var(--primary);
+            color: var(--primary);
+            padding: 12px 24px;
+            font-family: inherit;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 0 15px var(--primary);
+            text-transform: uppercase;
+        }
+
+        .arcade-btn:hover {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 30px var(--primary);
+        }
+        .arcade-btn:active { transform: scale(0.95); }
+
+        .footer-right { display: flex; gap: 15px; }
+        .social-link {
+            color: var(--secondary);
+            font-size: 20px;
+            text-decoration: none;
+            transition: 0.3s;
+            filter: drop-shadow(0 0 5px var(--secondary));
+        }
+        .social-link:hover { color: var(--primary); transform: scale(1.2); }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            nav ul { flex-direction: column; gap: 10px; }
+            nav a { display: block; text-align: center; border: 2px solid var(--secondary); }
+            nav a::before { display: none; }
+            nav a:hover, nav a.active { background: var(--primary); color: #000; }
+            .glitch { font-size: 18px; }
+            .feature-card h3 { font-size: 16px; }
+            .cabinet-controls { gap: 15px; }
+        }
+        @media (max-width: 480px) {
+            h1 { font-size: 16px; }
+            .online-indicator { font-size: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="crt"></div>
+    <div class="scanline"></div>
+
+    <div class="arcade-container">
+        <header>
+            <div class="marquee">
+                <div class="marquee-content">
+                    <span>✦ RETRO GAME FORUM ✦ JOIN THE DISCUSSION ✦ HIGH SCORE 123456 ✦ READY PLAYER ONE ✦</span>
+                </div>
+            </div>
+
+            <div class="pacman-header">
+                <div class="pacman-animation">
+                    <div class="pacman"></div>
+                    <div class="ghost red"></div>
+                    <div class="ghost pink"></div>
+                    <div class="ghost cyan"></div>
+                    <div class="ghost orange"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                </div>
+                <h1>RETRO GAME FORUM</h1>
+                <div class="online-indicator">ONLINE: <span id="onlineCount">128</span></div>
+            </div>
+
+            <nav>
+                <ul>
+                    <li><a href="#" class="active" data-text="ГЛАВНАЯ">ГЛАВНАЯ</a></li>
+                    <li><a href="#" data-text="НОВОСТИ">НОВОСТИ</a></li>
+                    <li><a href="#" data-text="ОБЗОРЫ">ОБЗОРЫ</a></li>
+                    <li><a href="#" data-text="ФОРУМ">ФОРУМ</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main>
+            <section class="hero">
+                <h2 class="glitch" data-text="ДОБРО ПОЖАЛОВАТЬ В RETRO GAME FORUM!">ДОБРО ПОЖАЛОВАТЬ В RETRO GAME FORUM!</h2>
+
+                <div class="arcade-cabinet">
+                    <div class="cabinet-top"></div>
+                    <div class="cabinet-screen">
+                        <div class="game-preview">
+                            <div class="pacman-game">
+                                <div class="pacman-character"></div>
+                                <div class="ghost-character red-ghost"></div>
+                                <div class="ghost-character pink-ghost"></div>
+                                <div class="ghost-character cyan-ghost"></div>
+                                <div class="ghost-character orange-ghost"></div>
+                                <div class="dot-row">
+                                    <span class="game-dot"></span><span class="game-dot"></span><span class="game-dot"></span><span class="game-dot"></span><span class="game-dot"></span>
+                                    <span class="game-dot"></span><span class="game-dot"></span><span class="game-dot"></span><span class="game-dot"></span><span class="game-dot"></span>
+                                </div>
+                            </div>
+                            <div class="screen-glow"></div>
+                        </div>
+                    </div>
+                    <div class="cabinet-controls">
+                        <div class="joystick"></div>
+                        <div class="button red" id="redBtn"></div>
+                        <div class="button blue" id="blueBtn"></div>
+                        <div class="button yellow" id="yellowBtn"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="features">
+                <h2 class="section-title blink">РАЗДЕЛЫ ФОРУМА:</h2>
+                <div class="features-grid">
+                    <div class="feature-card" data-demo="news">
+                        <span class="card-icon">📰</span>
+                        <h3>НОВОСТИ</h3>
+                        <p>Свежие новости игровой индустрии</p>
+                        <span class="enter-btn">ПЕРЕЙТИ →</span>
+                    </div>
+                    <div class="feature-card" data-demo="reviews">
+                        <span class="card-icon">🎮</span>
+                        <h3>ОБЗОРЫ</h3>
+                        <p>Обзоры классических и новых игр</p>
+                        <span class="enter-btn">ПЕРЕЙТИ →</span>
+                    </div>
+                    <div class="feature-card" data-demo="forum">
+                        <span class="card-icon">💬</span>
+                        <h3>ФОРУМ</h3>
+                        <p>Обсуждения, секреты, советы</p>
+                        <span class="enter-btn">ПЕРЕЙТИ →</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="highscores">
+                <div class="scoreboard">
+                    <h3>⭐ ТОП ИГР НЕДЕЛИ ⭐</h3>
+                    <div class="score-row"><span>1. ELDEN RING</span><span>⭐ 4.8</span></div>
+                    <div class="score-row"><span>2. STARFIELD</span><span>⭐ 4.5</span></div>
+                    <div class="score-row"><span>3. ZELDA: TOTK</span><span>⭐ 4.9</span></div>
+                    <div class="score-row"><span>4. BALDUR'S GATE 3</span><span>⭐ 4.7</span></div>
+                    <div class="score-row"><span>5. CYBERPUNK 2077</span><span>⭐ 4.3</span></div>
+                </div>
+            </section>
+
+            <section class="latest-discussions">
+                <h2 class="section-title">🔥 АКТИВНЫЕ ТЕМЫ</h2>
+                <div class="topics-grid">
+                    <div class="topic-item"><span class="topic-icon">💬</span><div class="topic-info"><h4>Лучшие RPG последних лет</h4><p>Ответов: 42 • Последний: 5 мин назад</p></div></div>
+                    <div class="topic-item"><span class="topic-icon">💬</span><div class="topic-info"><h4>Секреты в Starfield</h4><p>Ответов: 27 • Последний: 15 мин назад</p></div></div>
+                    <div class="topic-item"><span class="topic-icon">💬</span><div class="topic-info"><h4>Ностальгия: игры на PS1</h4><p>Ответов: 156 • Последний: 1 час назад</p></div></div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="footer-left"><span class="player-indicator">1UP</span><span class="highscore">HIGH SCORE 123456</span></div>
+            <div class="footer-center"><button class="arcade-btn" id="joinBtn">ПРИСОЕДИНИТЬСЯ</button></div>
+            <div class="footer-right"><a href="#" class="social-link">📘</a><a href="#" class="social-link">🐦</a><a href="#" class="social-link">📺</a><a href="#" class="social-link">👾</a></div>
+        </footer>
+    </div>
+
+    <script>
+        (function() {
+            // === Демо-режим: все переходы внутри страницы ===
+            const showDemoAlert = () => alert("🌟 Демо-версия портала! Раздел в разработке, но ретро-дух уже здесь 🌟");
+
+            // Все навигационные ссылки (кроме активной главной, но все равно алерт)
+            document.querySelectorAll('nav a').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (!link.classList.contains('active')) {
+                        document.body.style.animation = 'shake 0.2s';
+                        setTimeout(() => document.body.style.animation = '', 200);
+                    }
+                    showDemoAlert();
+                });
+            });
+
+            // Карточки разделов (feature cards)
+            document.querySelectorAll('.feature-card').forEach(card => {
+                card.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showDemoAlert();
+                });
+            });
+
+            // Социальные ссылки тоже демо
+            document.querySelectorAll('.social-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showDemoAlert();
+                });
+            });
+
+            // Кнопка ПРИСОЕДИНИТЬСЯ
+            const joinBtn = document.getElementById('joinBtn');
+            if(joinBtn) {
+                joinBtn.addEventListener('click', () => {
+                    alert('Добро пожаловать в Retro Game Forum! (Регистрация откроется в 199X году...)');
+                    document.body.style.backgroundColor = '#0f0';
+                    setTimeout(() => document.body.style.backgroundColor = '#000', 100);
+                });
+            }
+
+            // Онлайн-счетчик (флуктуация)
+            let online = 128;
+            const onlineSpan = document.getElementById('onlineCount');
+            if(onlineSpan) {
+                setInterval(() => {
+                    const change = Math.floor(Math.random() * 5) - 2;
+                    online = Math.max(100, Math.min(200, online + change));
+                    onlineSpan.textContent = online;
+                }, 5000);
+            }
+
+            // Эффект мерцания ЭЛТ
+            setInterval(() => {
+                if(Math.random() > 0.9) {
+                    const crtDiv = document.querySelector('.crt');
+                    if(crtDiv) {
+                        crtDiv.style.opacity = '0.3';
+                        setTimeout(() => { if(crtDiv) crtDiv.style.opacity = '1'; }, 100);
+                    }
+                }
+            }, 3000);
+
+            // ========== УПРАВЛЕНИЕ ПРИЗРАКАМИ (кнопки на аркадном автомате) ==========
+            const redBtn = document.getElementById('redBtn');
+            const blueBtn = document.getElementById('blueBtn');
+            const yellowBtn = document.getElementById('yellowBtn');
+
+            const redGhostEl = document.querySelector('.red-ghost');
+            const cyanGhostEl = document.querySelector('.cyan-ghost');
+            const orangeGhostEl = document.querySelector('.orange-ghost');
+
+            // состояния видимости
+            let redVisible = true;
+            let cyanVisible = true;
+            let orangeVisible = true;
+
+            // Универсальная функция с анимацией распада
+            function initGhostToggle(button, ghost, visibilityFlag) {
+                if(!button || !ghost) return;
+                button.addEventListener('click', () => {
+                    if(visibilityFlag) {
+                        // Исчезаем с пиксельной магией
+                        ghost.classList.add('dissolve');
+                        setTimeout(() => {
+                            ghost.style.display = 'none';
+                            ghost.classList.remove('dissolve');
+                        }, 500);
+                        visibilityFlag = false;
+                    } else {
+                        // Появление обратно
+                        ghost.style.display = 'block';
+                        visibilityFlag = true;
+                    }
+                });
+            }
+
+            // Инициализация кнопок
+            initGhostToggle(redBtn, redGhostEl, (() => { let v = true; return () => v; })(), (val) => { redVisible = val; });
+            // Немного подправим, чтобы работало через замыкание правильно:
+            // Перепишем чисто:
+            const redState = { val: true };
+            const cyanState = { val: true };
+            const orangeState = { val: true };
+
+            if(redBtn && redGhostEl) {
+                redBtn.addEventListener('click', () => {
+                    if(redState.val) {
+                        redGhostEl.classList.add('dissolve');
+                        setTimeout(() => { redGhostEl.style.display = 'none'; redGhostEl.classList.remove('dissolve'); }, 500);
+                        redState.val = false;
+                    } else {
+                        redGhostEl.style.display = 'block';
+                        redState.val = true;
+                    }
+                });
+            }
+            if(blueBtn && cyanGhostEl) {
+                blueBtn.addEventListener('click', () => {
+                    if(cyanState.val) {
+                        cyanGhostEl.classList.add('dissolve');
+                        setTimeout(() => { cyanGhostEl.style.display = 'none'; cyanGhostEl.classList.remove('dissolve'); }, 500);
+                        cyanState.val = false;
+                    } else {
+                        cyanGhostEl.style.display = 'block';
+                        cyanState.val = true;
+                    }
+                });
+            }
+            if(yellowBtn && orangeGhostEl) {
+                yellowBtn.addEventListener('click', () => {
+                    if(orangeState.val) {
+                        orangeGhostEl.classList.add('dissolve');
+                        setTimeout(() => { orangeGhostEl.style.display = 'none'; orangeGhostEl.classList.remove('dissolve'); }, 500);
+                        orangeState.val = false;
+                    } else {
+                        orangeGhostEl.style.display = 'block';
+                        orangeState.val = true;
+                    }
+                });
+            }
+
+            // Небольшой фикс: начальное отображение всех призраков
+            if(redGhostEl) redGhostEl.style.display = 'block';
+            if(cyanGhostEl) cyanGhostEl.style.display = 'block';
+            if(orangeGhostEl) orangeGhostEl.style.display = 'block';
+        })();
+    </script>
+</body>
+</html>

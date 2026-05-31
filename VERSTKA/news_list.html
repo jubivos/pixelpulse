@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>RETRO GAME FORUM | Новости</title>
+    <style>
+        /* ========== ИМПОРТ ШРИФТА ========== */
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        /* ========== ПЕРЕМЕННЫЕ ========== */
+        :root {
+            --primary: #ff0;
+            --secondary: #0f0;
+            --ghost-red: #f00;
+            --ghost-pink: #f0f;
+            --ghost-cyan: #0ff;
+            --ghost-orange: #ff8c00;
+            --bg-dark: #000;
+            --bg-light: #111;
+            --neon-glow: 0 0 10px currentColor, 0 0 20px currentColor;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23ff0" /></svg>') 12 12, auto;
+        }
+
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background-color: var(--bg-dark);
+            color: var(--secondary);
+            line-height: 1.6;
+            font-size: 12px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Эффект ЭЛТ */
+        .crt::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0px, rgba(0,255,0,0.05) 1px, transparent 2px);
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: rgba(0,255,0,0.1);
+            opacity: 0.75;
+            animation: scan 8s linear infinite;
+            pointer-events: none;
+            z-index: 101;
+        }
+
+        @keyframes scan {
+            0% { top: -10px; }
+            100% { top: 110%; }
+        }
+
+        /* Тряска */
+        @keyframes shake {
+            0% { transform: translate(0); }
+            25% { transform: translate(-5px, 0); }
+            50% { transform: translate(5px, 0); }
+            75% { transform: translate(-2px, 0); }
+            100% { transform: translate(0); }
+        }
+
+        /* Бегущая строка */
+        .marquee {
+            background: #222;
+            color: var(--primary);
+            padding: 8px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            border: 2px solid var(--secondary);
+            margin-bottom: 20px;
+        }
+
+        .marquee-content {
+            display: inline-block;
+            animation: marquee 20s linear infinite;
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Шапка */
+        .pacman-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .pacman-animation {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #000;
+            padding: 10px;
+            border: 2px solid var(--secondary);
+            border-radius: 30px;
+        }
+
+        .pacman {
+            width: 0;
+            height: 0;
+            border-right: 15px solid transparent;
+            border-top: 15px solid var(--primary);
+            border-left: 15px solid var(--primary);
+            border-bottom: 15px solid var(--primary);
+            border-radius: 50%;
+            animation: chomp 0.3s infinite;
+        }
+
+        @keyframes chomp {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(30deg); }
+        }
+
+        .ghost {
+            width: 25px;
+            height: 25px;
+            border-radius: 50% 50% 0 0;
+            position: relative;
+            animation: float 2s infinite;
+        }
+
+        .ghost::after {
+            content: "";
+            position: absolute;
+            bottom: -6px;
+            left: 4px;
+            width: 6px;
+            height: 6px;
+            background: inherit;
+            border-radius: 50%;
+            box-shadow: 8px 0 0 inherit, 16px 0 0 inherit;
+        }
+
+        .ghost.red { background-color: var(--ghost-red); }
+        .ghost.pink { background-color: var(--ghost-pink); }
+        .ghost.cyan { background-color: var(--ghost-cyan); }
+        .ghost.orange { background-color: var(--ghost-orange); }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            background: #fff;
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        h1 {
+            font-size: 20px;
+            color: var(--primary);
+            text-shadow: 4px 4px 0 blue, 0 0 20px var(--primary);
+            letter-spacing: 2px;
+        }
+
+        .online-indicator {
+            background: #111;
+            border: 2px solid var(--secondary);
+            padding: 10px 20px;
+            color: var(--ghost-cyan);
+            font-size: 14px;
+            box-shadow: var(--neon-glow);
+        }
+
+        /* Навигация */
+        nav ul {
+            display: flex;
+            justify-content: space-around;
+            list-style: none;
+            border: 4px solid var(--secondary);
+            padding: 10px;
+            background: linear-gradient(45deg, #000, #222);
+            box-shadow: 0 0 20px var(--secondary);
+        }
+
+        nav a {
+            color: var(--secondary);
+            text-decoration: none;
+            padding: 12px 24px;
+            border: 2px solid transparent;
+            position: relative;
+            transition: 0.3s;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        nav a::before {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--primary);
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: perspective(400px) rotateX(90deg);
+            transform-origin: bottom;
+            transition: 0.3s;
+            pointer-events: none;
+        }
+
+        nav a:hover::before,
+        nav a.active::before {
+            transform: perspective(400px) rotateX(0deg);
+        }
+
+        nav a:hover,
+        nav a.active {
+            color: transparent;
+        }
+
+        /* Герой */
+        .hero {
+            text-align: center;
+            margin: 50px 0;
+        }
+
+        .glitch {
+            font-size: 24px;
+            color: var(--primary);
+            position: relative;
+            margin-bottom: 30px;
+            animation: glitch 3s infinite;
+        }
+
+        .glitch::before,
+        .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+        }
+
+        .glitch::before {
+            color: #0ff;
+            z-index: -1;
+            animation: glitch-offset 0.3s infinite linear;
+        }
+
+        .glitch::after {
+            color: #f0f;
+            z-index: -2;
+            animation: glitch-offset2 0.2s infinite linear;
+        }
+
+        @keyframes glitch {
+            2%, 64% { transform: skew(0deg, 0deg); }
+            4%, 60% { transform: skew(0deg, 0deg); }
+            62% { transform: skew(0deg, 10deg); }
+        }
+        @keyframes glitch-offset {
+            2% { transform: translate(2px, 0); }
+            4% { transform: translate(-2px, 0); }
+            62% { transform: translate(0, 2px); }
+        }
+        @keyframes glitch-offset2 {
+            2% { transform: translate(0, 2px); }
+            4% { transform: translate(0, -2px); }
+            62% { transform: translate(2px, 0); }
+        }
+
+        /* Секция новостей */
+        .news-section {
+            margin: 40px 0;
+        }
+
+        .section-title {
+            text-align: center;
+            color: var(--primary);
+            margin: 50px 0 30px;
+            font-size: 18px;
+            animation: blink 1s infinite;
+        }
+
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+            margin: 0 15px;
+        }
+
+        .news-card {
+            background: linear-gradient(145deg, #111, #222);
+            border: 4px solid var(--secondary);
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+        }
+
+        .news-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 30px var(--primary);
+            transform: translateY(-5px);
+        }
+
+        .news-date {
+            color: var(--ghost-cyan);
+            font-size: 10px;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .news-card h3 {
+            color: var(--primary);
+            font-size: 12px;
+            margin-bottom: 15px;
+            line-height: 1.4;
+            min-height: 48px;
+        }
+
+        .news-card p {
+            color: var(--secondary);
+            font-size: 10px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .read-more {
+            display: inline-block;
+            color: var(--primary);
+            text-decoration: none;
+            border: 2px solid var(--primary);
+            padding: 8px 16px;
+            font-size: 8px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        .read-more:hover {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        /* Пагинация */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+
+        .page-number {
+            display: inline-block;
+            padding: 8px 12px;
+            background: #111;
+            border: 2px solid var(--secondary);
+            color: var(--secondary);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        .page-number:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .page-number.active {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        /* Футер */
+        footer {
+            margin-top: 60px;
+            padding: 20px 0;
+            border-top: 4px solid var(--secondary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .footer-left {
+            display: flex;
+            gap: 30px;
+        }
+
+        .player-indicator {
+            color: var(--primary);
+            animation: blink 1s infinite;
+        }
+
+        .highscore {
+            color: var(--ghost-cyan);
+        }
+
+        .arcade-btn {
+            background: #111;
+            border: 3px solid var(--primary);
+            color: var(--primary);
+            padding: 12px 24px;
+            font-family: inherit;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 0 15px var(--primary);
+            text-transform: uppercase;
+        }
+
+        .arcade-btn:hover {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 30px var(--primary);
+        }
+
+        .arcade-btn:active {
+            transform: scale(0.95);
+        }
+
+        .footer-right {
+            display: flex;
+            gap: 15px;
+        }
+
+        .social-link {
+            color: var(--secondary);
+            font-size: 20px;
+            text-decoration: none;
+            transition: 0.3s;
+            filter: drop-shadow(0 0 5px var(--secondary));
+        }
+
+        .social-link:hover {
+            color: var(--primary);
+            transform: scale(1.2);
+        }
+
+        /* Адаптивность */
+        @media (max-width: 1024px) {
+            .news-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                font-size: 12px;
+            }
+            .marquee {
+                font-size: 10px;
+            }
+            nav ul {
+                flex-direction: column;
+                gap: 10px;
+                padding: 15px;
+            }
+            nav a {
+                display: block;
+                text-align: center;
+                padding: 15px;
+                font-size: 14px;
+                border: 2px solid var(--secondary);
+                width: 100%;
+            }
+            nav a::before {
+                display: none;
+            }
+            nav a:hover,
+            nav a.active {
+                background: var(--primary);
+                color: #000;
+                border-color: var(--primary);
+            }
+            .news-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+            .pagination {
+                gap: 8px;
+            }
+            .page-number {
+                padding: 6px 10px;
+                font-size: 10px;
+            }
+            footer {
+                flex-direction: column;
+                text-align: center;
+            }
+            .footer-left {
+                justify-content: center;
+            }
+            .arcade-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .news-grid {
+                grid-template-columns: 1fr;
+            }
+            .news-card h3 {
+                font-size: 11px;
+            }
+            .news-card p {
+                font-size: 9px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="crt"></div>
+    <div class="scanline"></div>
+
+    <div class="arcade-container">
+        <header>
+            <div class="marquee">
+                <div class="marquee-content">
+                    <span>✦ RETRO GAME FORUM ✦ НОВОСТИ ИГРОВОЙ ИНДУСТРИИ ✦ HIGH SCORE 123456 ✦ READY PLAYER ONE ✦</span>
+                </div>
+            </div>
+
+            <div class="pacman-header">
+                <div class="pacman-animation">
+                    <div class="pacman"></div>
+                    <div class="ghost red"></div>
+                    <div class="ghost pink"></div>
+                    <div class="ghost cyan"></div>
+                    <div class="ghost orange"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                </div>
+                <h1>RETRO GAME FORUM</h1>
+                <div class="online-indicator">ONLINE: <span id="onlineCount">128</span></div>
+            </div>
+
+            <nav>
+                <ul>
+                    <li><a href="#" data-text="ГЛАВНАЯ">ГЛАВНАЯ</a></li>
+                    <li><a href="#" class="active" data-text="НОВОСТИ">НОВОСТИ</a></li>
+                    <li><a href="#" data-text="ОБЗОРЫ">ОБЗОРЫ</a></li>
+                    <li><a href="#" data-text="ФОРУМ">ФОРУМ</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main>
+            <section class="hero">
+                <h2 class="glitch" data-text="ПОСЛЕДНИЕ НОВОСТИ ИГРОВОЙ ИНДУСТРИИ">ПОСЛЕДНИЕ НОВОСТИ ИГРОВОЙ ИНДУСТРИИ</h2>
+            </section>
+
+            <section class="news-section">
+                <h2 class="section-title blink">🔥 СВЕЖИЕ НОВОСТИ 🔥</h2>
+                <div class="news-grid" id="newsGrid"></div>
+                <div class="pagination" id="pagination"></div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="footer-left">
+                <span class="player-indicator">1UP</span>
+                <span class="highscore">HIGH SCORE 123456</span>
+            </div>
+            <div class="footer-center">
+                <button class="arcade-btn" id="joinBtn">ПРИСОЕДИНИТЬСЯ</button>
+            </div>
+            <div class="footer-right">
+                <a href="#" class="social-link">📘</a>
+                <a href="#" class="social-link">🐦</a>
+                <a href="#" class="social-link">📺</a>
+                <a href="#" class="social-link">👾</a>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        (function() {
+            // ========== ГЕНЕРАЦИЯ НОВОСТЕЙ И ПАГИНАЦИЯ ==========
+            const totalNews = 96;
+            const newsPerPage = 12; // 4×3 = 12
+            const totalPages = Math.ceil(totalNews / newsPerPage);
+
+            function generateNewsItem(index) {
+                const date = new Date();
+                date.setDate(date.getDate() - (totalNews - index));
+                const day = date.getDate().toString().padStart(2, '0');
+                const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                const year = date.getFullYear();
+                return {
+                    date: `${day}.${month}.${year}`,
+                    title: `Новость #${index + 1}: Важное событие в мире игр`,
+                    preview: `Краткий анонс новости номер ${index + 1}. Здесь могла бы быть интересная информация о новых релизах, патчах или анонсах.`
+                };
+            }
+
+            const allNews = [];
+            for (let i = 0; i < totalNews; i++) {
+                allNews.push(generateNewsItem(i));
+            }
+
+            let currentPage = 1;
+            const newsGrid = document.getElementById('newsGrid');
+            const paginationDiv = document.getElementById('pagination');
+
+            function renderNews() {
+                const start = (currentPage - 1) * newsPerPage;
+                const end = start + newsPerPage;
+                const pageNews = allNews.slice(start, end);
+
+                newsGrid.innerHTML = pageNews.map(news => `
+                    <div class="news-card">
+                        <div class="news-date">📅 ${news.date}</div>
+                        <h3>${news.title}</h3>
+                        <p>${news.preview}</p>
+                        <a href="#" class="read-more" data-news="${news.title.replace(/"/g, '&quot;')}">ЧИТАТЬ ДАЛЕЕ →</a>
+                    </div>
+                `).join('');
+
+                document.querySelectorAll('.page-number').forEach(btn => {
+                    if (parseInt(btn.dataset.page) === currentPage) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+            }
+
+            function createPagination() {
+                paginationDiv.innerHTML = '';
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageBtn = document.createElement('span');
+                    pageBtn.className = 'page-number';
+                    pageBtn.textContent = i;
+                    pageBtn.dataset.page = i;
+                    pageBtn.addEventListener('click', () => {
+                        currentPage = i;
+                        renderNews();
+                        document.querySelector('.news-section').scrollIntoView({ behavior: 'smooth' });
+                    });
+                    paginationDiv.appendChild(pageBtn);
+                }
+            }
+
+            createPagination();
+            renderNews();
+
+            // Обработчик клика по "Читать далее"
+            newsGrid.addEventListener('click', (e) => {
+                if (e.target.classList.contains('read-more')) {
+                    e.preventDefault();
+                    const newsTitle = e.target.getAttribute('data-news');
+                    alert(`🔍 Полная новость:\n${newsTitle}\n\n(Здесь будет полный текст статьи.)`);
+                }
+            });
+
+            // ========== 2. ОНЛАЙН-СЧЁТЧИК ==========
+            let online = 128;
+            const onlineSpan = document.getElementById('onlineCount');
+            if (onlineSpan) {
+                setInterval(() => {
+                    const change = Math.floor(Math.random() * 5) - 2;
+                    online = Math.max(100, Math.min(200, online + change));
+                    onlineSpan.textContent = online;
+                }, 5000);
+            }
+
+            // ========== 3. ЭФФЕКТЫ: ТРЯСКА, ПОМЕХИ, ДЕМО-КЛИКИ ==========
+            // Тряска и демо для навигации
+            document.querySelectorAll('nav a').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (!link.classList.contains('active')) {
+                        document.body.style.animation = 'shake 0.2s';
+                        setTimeout(() => document.body.style.animation = '', 200);
+                    }
+                    alert('🌟 Демо-версия портала! Раздел в разработке 🌟');
+                });
+            });
+
+            // Случайные помехи (статик)
+            setInterval(() => {
+                if (Math.random() > 0.9) {
+                    const crt = document.querySelector('.crt');
+                    if (crt) {
+                        crt.style.opacity = '0.3';
+                        setTimeout(() => { if (crt) crt.style.opacity = '1'; }, 100);
+                    }
+                }
+            }, 3000);
+
+            // Кнопка "ПРИСОЕДИНИТЬСЯ" (имитация)
+            const joinBtn = document.getElementById('joinBtn');
+            if (joinBtn) {
+                joinBtn.addEventListener('click', () => {
+                    alert('Добро пожаловать в Retro Game Forum! (Здесь будет регистрация)');
+                    document.body.style.backgroundColor = '#0f0';
+                    setTimeout(() => {
+                        document.body.style.backgroundColor = '#000';
+                    }, 100);
+                });
+            }
+
+            // Социальные ссылки — демо
+            document.querySelectorAll('.social-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    alert('👾 Социальные сети в разработке. Следите за новостями!');
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

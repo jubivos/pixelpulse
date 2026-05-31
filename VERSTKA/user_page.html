@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>RETRO GAME FORUM | Личная страница пользователя</title>
+    <style>
+        /* ========== ОСНОВНЫЕ СТИЛИ (РЕТРО-АРКАДА) ========== */
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        :root {
+            --primary: #ff0;
+            --secondary: #0f0;
+            --ghost-red: #f00;
+            --ghost-pink: #f0f;
+            --ghost-cyan: #0ff;
+            --ghost-orange: #ff8c00;
+            --bg-dark: #000;
+            --bg-light: #111;
+            --neon-glow: 0 0 10px currentColor, 0 0 20px currentColor;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23ff0" /></svg>') 12 12, auto;
+        }
+
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background-color: var(--bg-dark);
+            color: var(--secondary);
+            line-height: 1.6;
+            font-size: 12px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .crt::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0px, rgba(0,255,0,0.05) 1px, transparent 2px);
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: rgba(0,255,0,0.1);
+            opacity: 0.75;
+            animation: scan 8s linear infinite;
+            pointer-events: none;
+            z-index: 101;
+        }
+
+        @keyframes scan {
+            0% { top: -10px; }
+            100% { top: 110%; }
+        }
+
+        .marquee {
+            background: #222;
+            color: var(--primary);
+            padding: 8px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            border: 2px solid var(--secondary);
+            margin-bottom: 20px;
+        }
+
+        .marquee-content {
+            display: inline-block;
+            animation: marquee 20s linear infinite;
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        .pacman-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .pacman-animation {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #000;
+            padding: 10px;
+            border: 2px solid var(--secondary);
+            border-radius: 30px;
+        }
+
+        .pacman {
+            width: 0;
+            height: 0;
+            border-right: 15px solid transparent;
+            border-top: 15px solid var(--primary);
+            border-left: 15px solid var(--primary);
+            border-bottom: 15px solid var(--primary);
+            border-radius: 50%;
+            animation: chomp 0.3s infinite;
+        }
+
+        @keyframes chomp {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(30deg); }
+        }
+
+        .ghost {
+            width: 25px;
+            height: 25px;
+            border-radius: 50% 50% 0 0;
+            position: relative;
+            animation: float 2s infinite;
+        }
+
+        .ghost::after {
+            content: "";
+            position: absolute;
+            bottom: -6px;
+            left: 4px;
+            width: 6px;
+            height: 6px;
+            background: inherit;
+            border-radius: 50%;
+            box-shadow: 8px 0 0 inherit, 16px 0 0 inherit;
+        }
+
+        .ghost.red { background-color: var(--ghost-red); }
+        .ghost.pink { background-color: var(--ghost-pink); }
+        .ghost.cyan { background-color: var(--ghost-cyan); }
+        .ghost.orange { background-color: var(--ghost-orange); }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            background: #fff;
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        h1 {
+            font-size: 20px;
+            color: var(--primary);
+            text-shadow: 4px 4px 0 blue, 0 0 20px var(--primary);
+            letter-spacing: 2px;
+        }
+
+        .online-indicator {
+            background: #111;
+            border: 2px solid var(--secondary);
+            padding: 10px 20px;
+            color: var(--ghost-cyan);
+            font-size: 14px;
+            box-shadow: var(--neon-glow);
+        }
+
+        nav ul {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            list-style: none;
+            border: 4px solid var(--secondary);
+            padding: 10px;
+            background: linear-gradient(45deg, #000, #222);
+            box-shadow: 0 0 20px var(--secondary);
+            gap: 5px;
+        }
+
+        nav a {
+            color: var(--secondary);
+            text-decoration: none;
+            padding: 12px 18px;
+            border: 2px solid transparent;
+            position: relative;
+            transition: 0.3s;
+            font-size: 12px;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+
+        nav a::before {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--primary);
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: perspective(400px) rotateX(90deg);
+            transform-origin: bottom;
+            transition: 0.3s;
+            pointer-events: none;
+        }
+
+        nav a:hover::before,
+        nav a.active::before {
+            transform: perspective(400px) rotateX(0deg);
+        }
+
+        nav a:hover,
+        nav a.active {
+            color: transparent;
+        }
+
+        /* Основной профиль */
+        .profile-container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .card {
+            background: #111;
+            border: 3px solid var(--secondary);
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 0 20px rgba(0,255,0,0.2);
+        }
+
+        .card-title {
+            color: var(--primary);
+            font-size: 16px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-left: 4px solid var(--primary);
+            padding-left: 15px;
+        }
+
+        .avatar-section {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .avatar {
+            background: #000;
+            border: 4px solid var(--secondary);
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px dashed var(--secondary);
+            flex-wrap: wrap;
+        }
+
+        .info-label {
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .info-value {
+            color: var(--ghost-cyan);
+        }
+
+        .games-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .game-badge {
+            background: #000;
+            border: 1px solid var(--secondary);
+            padding: 5px 12px;
+            font-size: 10px;
+            color: var(--primary);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .social-link {
+            color: var(--ghost-cyan);
+            text-decoration: none;
+            border: 1px solid var(--ghost-cyan);
+            padding: 8px 15px;
+            font-size: 10px;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .social-link:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            background: #000;
+            border: 1px solid var(--secondary);
+            text-align: center;
+            padding: 15px;
+        }
+
+        .stat-value {
+            color: var(--primary);
+            font-size: 20px;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 8px;
+            color: var(--ghost-cyan);
+        }
+
+        .comments-list {
+            margin-top: 15px;
+        }
+
+        .comment-item {
+            background: #0a0a0a;
+            border: 1px solid var(--secondary);
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            color: var(--primary);
+            font-size: 10px;
+        }
+
+        .comment-text {
+            font-size: 10px;
+            line-height: 1.5;
+        }
+
+        footer {
+            margin-top: 60px;
+            padding: 20px 0;
+            border-top: 4px solid var(--secondary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .footer-left {
+            display: flex;
+            gap: 30px;
+        }
+
+        .player-indicator {
+            color: var(--primary);
+            animation: blink 1s infinite;
+        }
+
+        .highscore {
+            color: var(--ghost-cyan);
+        }
+
+        .arcade-btn {
+            background: #111;
+            border: 3px solid var(--primary);
+            color: var(--primary);
+            padding: 12px 24px;
+            font-family: inherit;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .arcade-btn:hover {
+            background: var(--primary);
+            color: #000;
+        }
+
+        .footer-right {
+            display: flex;
+            gap: 15px;
+        }
+
+        .social-icon {
+            color: var(--secondary);
+            font-size: 20px;
+            text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+            nav ul { flex-direction: column; align-items: center; }
+            nav a { width: 100%; text-align: center; border: 2px solid var(--secondary); }
+            nav a::before { display: none; }
+            nav a:hover, nav a.active { background: var(--primary); color: #000; }
+            .avatar-section { flex-direction: column; text-align: center; }
+            .info-row { flex-direction: column; gap: 5px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="crt"></div>
+    <div class="scanline"></div>
+
+    <div class="arcade-container">
+        <header>
+            <div class="marquee">
+                <div class="marquee-content">
+                    <span>✦ RETRO GAME FORUM ✦ ЛИЧНЫЙ КАБИНЕТ ИГРОКА ✦ HIGH SCORE 123456 ✦ READY PLAYER ONE ✦</span>
+                </div>
+            </div>
+
+            <div class="pacman-header">
+                <div class="pacman-animation">
+                    <div class="pacman"></div>
+                    <div class="ghost red"></div>
+                    <div class="ghost pink"></div>
+                    <div class="ghost cyan"></div>
+                    <div class="ghost orange"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                </div>
+                <h1>RETRO GAME FORUM</h1>
+                <div class="online-indicator">ONLINE: <span id="onlineCount">128</span></div>
+            </div>
+
+            <nav>
+                <ul>
+                    <li><a href="#" class="active" data-text="ПРОФИЛЬ">ПРОФИЛЬ</a></li>
+                    <li><a href="#" data-text="ГЛАВНАЯ">ГЛАВНАЯ</a></li>
+                    <li><a href="#" data-text="НОВОСТИ">НОВОСТИ</a></li>
+                    <li><a href="#" data-text="ОБЗОРЫ">ОБЗОРЫ</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main>
+            <div class="profile-container">
+                <!-- Основная информация -->
+                <div class="card">
+                    <h2 class="card-title">👾 ПРОФИЛЬ ИГРОКА</h2>
+                    <div class="avatar-section">
+                        <div class="avatar">🎮</div>
+                        <div class="user-info">
+                            <div class="info-row"><span class="info-label">Имя пользователя:</span><span class="info-value">RETRO_WARRIOR</span></div>
+                            <div class="info-row"><span class="info-label">Дата регистрации:</span><span class="info-value">01.01.2024</span></div>
+                            <div class="info-row"><span class="info-label">Статус:</span><span class="info-value">⭐ АКТИВНЫЙ ИГРОК</span></div>
+                            <div class="info-row"><span class="info-label">О себе:</span><span class="info-value">Люблю классические RPG и ретро-аркады. Играю с 90-х.</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Любимые игры -->
+                <div class="card">
+                    <h2 class="card-title">❤️ ЛЮБИМЫЕ ИГРЫ</h2>
+                    <div class="games-list">
+                        <span class="game-badge">🎲 BALDUR'S GATE 3</span>
+                        <span class="game-badge">⚔️ ELDEN RING</span>
+                        <span class="game-badge">🐺 THE WITCHER 3</span>
+                        <span class="game-badge">🎮 SUPER MARIO WORLD</span>
+                        <span class="game-badge">🔫 HALF-LIFE 2</span>
+                    </div>
+                </div>
+
+                <!-- Социальные ссылки -->
+                <div class="card">
+                    <h2 class="card-title">🔗 ПЛАТФОРМЫ И СОЦСЕТИ</h2>
+                    <div class="social-links">
+                        <a href="#" class="social-link">🎮 STEAM</a>
+                        <a href="#" class="social-link">🌀 EPIC GAMES</a>
+                        <a href="#" class="social-link">🎮 PLAYSTATION NETWORK</a>
+                        <a href="#" class="social-link">🐦 TWITTER</a>
+                        <a href="#" class="social-link">📺 TWITCH</a>
+                    </div>
+                </div>
+
+                <!-- Статистика активности -->
+                <div class="card">
+                    <h2 class="card-title">📊 СТАТИСТИКА</h2>
+                    <div class="stat-grid">
+                        <div class="stat-item"><span class="stat-value">24</span><span class="stat-label">КОММЕНТАРИЕВ</span></div>
+                        <div class="stat-item"><span class="stat-value">5</span><span class="stat-label">НОВОСТЕЙ</span></div>
+                        <div class="stat-item"><span class="stat-value">3</span><span class="stat-label">ОБЗОРОВ</span></div>
+                        <div class="stat-item"><span class="stat-value">127</span><span class="stat-label">РЕПУТАЦИЯ</span></div>
+                    </div>
+                </div>
+
+                <!-- Последние комментарии -->
+                <div class="card">
+                    <h2 class="card-title">💬 ПОСЛЕДНИЕ КОММЕНТАРИИ</h2>
+                    <div class="comments-list">
+                        <div class="comment-item">
+                            <div class="comment-header">
+                                <span>📰 Новость: Анонс новой игры от Team Cherry</span>
+                                <span>📅 21.03.2026</span>
+                            </div>
+                            <div class="comment-text">Невероятно! Жду с нетерпением, Hollow Knight был шедевром!</div>
+                        </div>
+                        <div class="comment-item">
+                            <div class="comment-header">
+                                <span>🎮 Обзор: ELDEN RING</span>
+                                <span>📅 15.03.2026</span>
+                            </div>
+                            <div class="comment-text">Согласен, лучшая игра 2022 года. Прошёл 3 раза!</div>
+                        </div>
+                        <div class="comment-item">
+                            <div class="comment-header">
+                                <span>💬 Форум: Лучшие RPG последних лет</span>
+                                <span>📅 10.03.2026</span>
+                            </div>
+                            <div class="comment-text">Никто не упомянул Disco Elysium? Это же шедевр!</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div class="footer-left">
+                <span class="player-indicator">1UP</span>
+                <span class="highscore">HIGH SCORE 123456</span>
+            </div>
+            <div class="footer-center">
+                <button class="arcade-btn" id="joinBtn">ПРИСОЕДИНИТЬСЯ</button>
+            </div>
+            <div class="footer-right">
+                <a href="#" class="social-icon">📘</a>
+                <a href="#" class="social-icon">🐦</a>
+                <a href="#" class="social-icon">📺</a>
+                <a href="#" class="social-icon">👾</a>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Онлайн-счётчик
+        let online = 128;
+        const onlineSpan = document.getElementById('onlineCount');
+        if (onlineSpan) {
+            setInterval(() => {
+                const change = Math.floor(Math.random() * 5) - 2;
+                online = Math.max(100, Math.min(200, online + change));
+                onlineSpan.textContent = online;
+            }, 5000);
+        }
+
+        // Кнопка "Присоединиться"
+        const joinBtn = document.getElementById('joinBtn');
+        if (joinBtn) {
+            joinBtn.addEventListener('click', () => {
+                alert('Добро пожаловать в Retro Game Forum! Регистрация откроется в 199X году...');
+                document.body.style.backgroundColor = '#0f0';
+                setTimeout(() => document.body.style.backgroundColor = '#000', 100);
+            });
+        }
+
+        // Эффект тряски для навигации
+        document.querySelectorAll('nav a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (!link.classList.contains('active')) {
+                    document.body.style.animation = 'shake 0.2s';
+                    setTimeout(() => document.body.style.animation = '', 200);
+                }
+                alert('🌟 Демо-версия портала! Раздел в разработке 🌟');
+            });
+        });
+
+        // Социальные ссылки
+        document.querySelectorAll('.social-link, .social-icon').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                alert('🔗 Переход на внешний профиль (демо-режим)');
+            });
+        });
+    </script>
+</body>
+</html>

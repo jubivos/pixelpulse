@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>RETRO GAME FORUM | Обзоры игр</title>
+    <style>
+        /* ========== ОСНОВНЫЕ СТИЛИ (IMPORT + ПЕРЕМЕННЫЕ) ========== */
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        :root {
+            --primary: #ff0;
+            --secondary: #0f0;
+            --ghost-red: #f00;
+            --ghost-pink: #f0f;
+            --ghost-cyan: #0ff;
+            --ghost-orange: #ff8c00;
+            --bg-dark: #000;
+            --bg-light: #111;
+            --neon-glow: 0 0 10px currentColor, 0 0 20px currentColor;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23ff0" /></svg>') 12 12, auto;
+        }
+
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background-color: var(--bg-dark);
+            color: var(--secondary);
+            line-height: 1.6;
+            font-size: 12px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Эффект ЭЛТ */
+        .crt::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0px, rgba(0,255,0,0.05) 1px, transparent 2px);
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: rgba(0,255,0,0.1);
+            opacity: 0.75;
+            animation: scan 8s linear infinite;
+            pointer-events: none;
+            z-index: 101;
+        }
+
+        @keyframes scan {
+            0% { top: -10px; }
+            100% { top: 110%; }
+        }
+
+        /* Тряска */
+        @keyframes shake {
+            0% { transform: translate(0); }
+            25% { transform: translate(-5px, 0); }
+            50% { transform: translate(5px, 0); }
+            75% { transform: translate(-2px, 0); }
+            100% { transform: translate(0); }
+        }
+
+        /* Бегущая строка */
+        .marquee {
+            background: #222;
+            color: var(--primary);
+            padding: 8px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            border: 2px solid var(--secondary);
+            margin-bottom: 20px;
+        }
+
+        .marquee-content {
+            display: inline-block;
+            animation: marquee 20s linear infinite;
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Шапка */
+        .pacman-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .pacman-animation {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #000;
+            padding: 10px;
+            border: 2px solid var(--secondary);
+            border-radius: 30px;
+        }
+
+        .pacman {
+            width: 0;
+            height: 0;
+            border-right: 15px solid transparent;
+            border-top: 15px solid var(--primary);
+            border-left: 15px solid var(--primary);
+            border-bottom: 15px solid var(--primary);
+            border-radius: 50%;
+            animation: chomp 0.3s infinite;
+        }
+
+        @keyframes chomp {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(30deg); }
+        }
+
+        .ghost {
+            width: 25px;
+            height: 25px;
+            border-radius: 50% 50% 0 0;
+            position: relative;
+            animation: float 2s infinite;
+        }
+
+        .ghost::after {
+            content: "";
+            position: absolute;
+            bottom: -6px;
+            left: 4px;
+            width: 6px;
+            height: 6px;
+            background: inherit;
+            border-radius: 50%;
+            box-shadow: 8px 0 0 inherit, 16px 0 0 inherit;
+        }
+
+        .ghost.red { background-color: var(--ghost-red); }
+        .ghost.pink { background-color: var(--ghost-pink); }
+        .ghost.cyan { background-color: var(--ghost-cyan); }
+        .ghost.orange { background-color: var(--ghost-orange); }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            background: #fff;
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        h1 {
+            font-size: 20px;
+            color: var(--primary);
+            text-shadow: 4px 4px 0 blue, 0 0 20px var(--primary);
+            letter-spacing: 2px;
+        }
+
+        .online-indicator {
+            background: #111;
+            border: 2px solid var(--secondary);
+            padding: 10px 20px;
+            color: var(--ghost-cyan);
+            font-size: 14px;
+            box-shadow: var(--neon-glow);
+        }
+
+        /* Навигация */
+        nav ul {
+            display: flex;
+            justify-content: space-around;
+            list-style: none;
+            border: 4px solid var(--secondary);
+            padding: 10px;
+            background: linear-gradient(45deg, #000, #222);
+            box-shadow: 0 0 20px var(--secondary);
+        }
+
+        nav a {
+            color: var(--secondary);
+            text-decoration: none;
+            padding: 12px 24px;
+            border: 2px solid transparent;
+            position: relative;
+            transition: 0.3s;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        nav a::before {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--primary);
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: perspective(400px) rotateX(90deg);
+            transform-origin: bottom;
+            transition: 0.3s;
+            pointer-events: none;
+        }
+
+        nav a:hover::before,
+        nav a.active::before {
+            transform: perspective(400px) rotateX(0deg);
+        }
+
+        nav a:hover,
+        nav a.active {
+            color: transparent;
+        }
+
+        /* Герой */
+        .hero {
+            text-align: center;
+            margin: 50px 0;
+        }
+
+        .glitch {
+            font-size: 24px;
+            color: var(--primary);
+            position: relative;
+            margin-bottom: 30px;
+            animation: glitch 3s infinite;
+        }
+
+        .glitch::before,
+        .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+        }
+
+        .glitch::before {
+            color: #0ff;
+            z-index: -1;
+            animation: glitch-offset 0.3s infinite linear;
+        }
+
+        .glitch::after {
+            color: #f0f;
+            z-index: -2;
+            animation: glitch-offset2 0.2s infinite linear;
+        }
+
+        @keyframes glitch {
+            2%, 64% { transform: skew(0deg, 0deg); }
+            4%, 60% { transform: skew(0deg, 0deg); }
+            62% { transform: skew(0deg, 10deg); }
+        }
+        @keyframes glitch-offset {
+            2% { transform: translate(2px, 0); }
+            4% { transform: translate(-2px, 0); }
+            62% { transform: translate(0, 2px); }
+        }
+        @keyframes glitch-offset2 {
+            2% { transform: translate(0, 2px); }
+            4% { transform: translate(0, -2px); }
+            62% { transform: translate(2px, 0); }
+        }
+
+        /* ===== СТРАНИЦА ОБЗОРОВ ИГР ===== */
+        .reviews-controls {
+            margin: 30px auto;
+            max-width: 1200px;
+            padding: 0 20px;
+        }
+
+        .search-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            color: var(--secondary);
+            pointer-events: none;
+        }
+
+        .search-box input {
+            width: 100%;
+            background: #000;
+            border: 3px solid var(--secondary);
+            padding: 15px 40px 15px 45px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 12px;
+            color: var(--primary);
+            transition: all 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 20px var(--primary);
+        }
+
+        .search-box input::placeholder {
+            color: #444;
+            font-size: 10px;
+        }
+
+        .clear-btn {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--secondary);
+            font-size: 16px;
+            cursor: pointer;
+            font-family: 'Press Start 2P', monospace;
+            transition: all 0.3s;
+        }
+
+        .clear-btn:hover {
+            color: var(--primary);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .filters-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            background: #111;
+            border: 2px solid var(--secondary);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group label {
+            color: var(--primary);
+            font-size: 10px;
+        }
+
+        .arcade-select {
+            background: #000;
+            border: 2px solid var(--secondary);
+            padding: 8px 12px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 10px;
+            color: var(--secondary);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .arcade-select:hover,
+        .arcade-select:focus {
+            border-color: var(--primary);
+            color: var(--primary);
+            outline: none;
+        }
+
+        .results-count {
+            color: var(--ghost-cyan);
+            font-size: 11px;
+            background: #000;
+            padding: 8px 15px;
+            border: 1px solid var(--secondary);
+        }
+
+        .results-count span {
+            color: var(--primary);
+            font-size: 14px;
+        }
+
+        .reviews-grid-section {
+            margin: 40px auto;
+            max-width: 1200px;
+            padding: 0 20px;
+        }
+
+        .reviews-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+        }
+
+        .review-card {
+            background: linear-gradient(145deg, #111, #222);
+            border: 3px solid var(--secondary);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .review-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 30px var(--primary);
+            transform: translateY(-5px);
+        }
+
+        .review-cover {
+            background: #000;
+            height: 160px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 2px solid var(--secondary);
+        }
+
+        .cover-icon {
+            font-size: 64px;
+            filter: drop-shadow(0 0 10px var(--secondary));
+        }
+
+        .review-info {
+            padding: 15px;
+        }
+
+        .game-title {
+            color: var(--primary);
+            font-size: 12px;
+            margin-bottom: 10px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .game-rating {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .rating-stars {
+            color: var(--primary);
+            font-size: 10px;
+            letter-spacing: 2px;
+        }
+
+        .rating-value {
+            color: var(--ghost-cyan);
+            font-size: 10px;
+            background: #000;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .game-meta {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed var(--secondary);
+        }
+
+        .game-genre {
+            color: var(--secondary);
+            font-size: 8px;
+            background: #000;
+            padding: 3px 8px;
+        }
+
+        .game-year {
+            color: var(--ghost-cyan);
+            font-size: 8px;
+        }
+
+        .game-review-preview {
+            color: var(--secondary);
+            font-size: 9px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .read-review-btn {
+            width: 100%;
+            background: #111;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            padding: 8px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        .read-review-btn:hover {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        /* Пагинация */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+
+        .page-number {
+            display: inline-block;
+            padding: 8px 12px;
+            background: #111;
+            border: 2px solid var(--secondary);
+            color: var(--secondary);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        .page-number:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .page-number.active {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        /* Футер */
+        footer {
+            margin-top: 60px;
+            padding: 20px 0;
+            border-top: 4px solid var(--secondary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .footer-left {
+            display: flex;
+            gap: 30px;
+        }
+
+        .player-indicator {
+            color: var(--primary);
+            animation: blink 1s infinite;
+        }
+
+        .highscore {
+            color: var(--ghost-cyan);
+        }
+
+        .arcade-btn {
+            background: #111;
+            border: 3px solid var(--primary);
+            color: var(--primary);
+            padding: 12px 24px;
+            font-family: inherit;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 0 15px var(--primary);
+            text-transform: uppercase;
+        }
+
+        .arcade-btn:hover {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 30px var(--primary);
+        }
+
+        .arcade-btn:active {
+            transform: scale(0.95);
+        }
+
+        .footer-right {
+            display: flex;
+            gap: 15px;
+        }
+
+        .social-link {
+            color: var(--secondary);
+            font-size: 20px;
+            text-decoration: none;
+            transition: 0.3s;
+            filter: drop-shadow(0 0 5px var(--secondary));
+        }
+
+        .social-link:hover {
+            color: var(--primary);
+            transform: scale(1.2);
+        }
+
+        /* Адаптивность */
+        @media (max-width: 1024px) {
+            .reviews-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                font-size: 12px;
+            }
+            .marquee {
+                font-size: 10px;
+            }
+            nav ul {
+                flex-direction: column;
+                gap: 10px;
+                padding: 15px;
+            }
+            nav a {
+                display: block;
+                text-align: center;
+                padding: 15px;
+                font-size: 14px;
+                border: 2px solid var(--secondary);
+                width: 100%;
+            }
+            nav a::before {
+                display: none;
+            }
+            nav a:hover,
+            nav a.active {
+                background: var(--primary);
+                color: #000;
+                border-color: var(--primary);
+            }
+            .reviews-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .filters-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-group {
+                justify-content: space-between;
+            }
+            .arcade-select {
+                flex: 1;
+            }
+            .results-count {
+                text-align: center;
+            }
+            footer {
+                flex-direction: column;
+                text-align: center;
+            }
+            .footer-left {
+                justify-content: center;
+            }
+            .arcade-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .reviews-grid {
+                grid-template-columns: 1fr;
+            }
+            .search-box input {
+                font-size: 10px;
+                padding: 12px 35px 12px 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="crt"></div>
+    <div class="scanline"></div>
+
+    <div class="arcade-container">
+        <header>
+            <div class="marquee">
+                <div class="marquee-content">
+                    <span>✦ RETRO GAME FORUM ✦ ОБЗОРЫ ИГР ✦ HIGH SCORE 123456 ✦ READY PLAYER ONE ✦</span>
+                </div>
+            </div>
+
+            <div class="pacman-header">
+                <div class="pacman-animation">
+                    <div class="pacman"></div>
+                    <div class="ghost red"></div>
+                    <div class="ghost pink"></div>
+                    <div class="ghost cyan"></div>
+                    <div class="ghost orange"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                </div>
+                <h1>RETRO GAME FORUM</h1>
+                <div class="online-indicator">ONLINE: <span id="onlineCount">128</span></div>
+            </div>
+
+            <nav>
+                <ul>
+                    <li><a href="#" data-text="ГЛАВНАЯ">ГЛАВНАЯ</a></li>
+                    <li><a href="#" data-text="НОВОСТИ">НОВОСТИ</a></li>
+                    <li><a href="#" class="active" data-text="ОБЗОРЫ">ОБЗОРЫ</a></li>
+                    <li><a href="#" data-text="ФОРУМ">ФОРУМ</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main>
+            <section class="hero">
+                <h2 class="glitch" data-text="ОБЗОРЫ КЛАССИЧЕСКИХ И СОВРЕМЕННЫХ ИГР">ОБЗОРЫ КЛАССИЧЕСКИХ И СОВРЕМЕННЫХ ИГР</h2>
+            </section>
+
+            <section class="reviews-controls">
+                <div class="search-container">
+                    <div class="search-box">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="searchInput" placeholder="ПОИСК ИГРЫ...">
+                        <button id="clearSearch" class="clear-btn">✖</button>
+                    </div>
+                </div>
+
+                <div class="filters-container">
+                    <div class="filter-group">
+                        <label>📋 СОРТИРОВКА:</label>
+                        <select id="sortSelect" class="arcade-select">
+                            <option value="default">ПО УМОЛЧАНИЮ</option>
+                            <option value="name-asc">НАЗВАНИЕ (А-Я)</option>
+                            <option value="name-desc">НАЗВАНИЕ (Я-А)</option>
+                            <option value="rating-desc">РЕЙТИНГ (ВЫСОКИЙ)</option>
+                            <option value="rating-asc">РЕЙТИНГ (НИЗКИЙ)</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>⭐ ФИЛЬТР ПО РЕЙТИНГУ:</label>
+                        <select id="ratingFilter" class="arcade-select">
+                            <option value="all">ВСЕ ИГРЫ</option>
+                            <option value="9">9+ ЗВЁЗД</option>
+                            <option value="8">8+ ЗВЁЗД</option>
+                            <option value="7">7+ ЗВЁЗД</option>
+                            <option value="6">6+ ЗВЁЗД</option>
+                            <option value="5">5+ ЗВЁЗД</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>🎮 ЖАНР:</label>
+                        <select id="genreFilter" class="arcade-select">
+                            <option value="all">ВСЕ ЖАНРЫ</option>
+                            <option value="action">ЭКШН</option>
+                            <option value="rpg">RPG</option>
+                            <option value="adventure">ПРИКЛЮЧЕНИЯ</option>
+                            <option value="strategy">СТРАТЕГИИ</option>
+                            <option value="horror">ХОРРОР</option>
+                            <option value="arcade">АРКАДА</option>
+                        </select>
+                    </div>
+
+                    <div class="results-count" id="resultsCount">
+                        НАЙДЕНО: <span>48</span> ИГР
+                    </div>
+                </div>
+            </section>
+
+            <section class="reviews-grid-section">
+                <div class="reviews-grid" id="reviewsGrid"></div>
+            </section>
+
+            <div class="pagination" id="pagination"></div>
+        </main>
+
+        <footer>
+            <div class="footer-left">
+                <span class="player-indicator">1UP</span>
+                <span class="highscore">HIGH SCORE 123456</span>
+            </div>
+            <div class="footer-center">
+                <button class="arcade-btn" id="joinBtn">ПРИСОЕДИНИТЬСЯ</button>
+            </div>
+            <div class="footer-right">
+                <a href="#" class="social-link">📘</a>
+                <a href="#" class="social-link">🐦</a>
+                <a href="#" class="social-link">📺</a>
+                <a href="#" class="social-link">👾</a>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- БАЗА ДАННЫХ ИГР (48 штук) ----------
+            const gamesDatabase = [
+                { id: 1, name: "ELDEN RING", rating: 9.8, genre: "rpg", cover: "🎮", year: 2022, review: "Шедевр от FromSoftware" },
+                { id: 2, name: "THE LEGEND OF ZELDA", rating: 9.9, genre: "adventure", cover: "🗡️", year: 2023, review: "Новая веха в жанре" },
+                { id: 3, name: "CYBERPUNK 2077", rating: 8.5, genre: "rpg", cover: "🔫", year: 2020, review: "После патчей - отлично" },
+                { id: 4, name: "STARFIELD", rating: 8.2, genre: "rpg", cover: "🚀", year: 2023, review: "Космос без границ" },
+                { id: 5, name: "RESIDENT EVIL 4", rating: 9.5, genre: "horror", cover: "🧟", year: 2023, review: "Идеальный ремейк" },
+                { id: 6, name: "BALDUR'S GATE 3", rating: 9.7, genre: "rpg", cover: "🎲", year: 2023, review: "RPG года" },
+                { id: 7, name: "SPIDER-MAN 2", rating: 9.2, genre: "action", cover: "🕷️", year: 2023, review: "Лучший супергеройский экшен" },
+                { id: 8, name: "HOGWARTS LEGACY", rating: 8.7, genre: "rpg", cover: "🪄", year: 2023, review: "Мечта фаната" },
+                { id: 9, name: "DEAD SPACE", rating: 9.1, genre: "horror", cover: "👽", year: 2023, review: "Космический хоррор" },
+                { id: 10, name: "STREET FIGHTER 6", rating: 9.3, genre: "arcade", cover: "🥊", year: 2023, review: "Возвращение легенды" },
+                { id: 11, name: "DIABLO IV", rating: 8.8, genre: "rpg", cover: "😈", year: 2023, review: "Тёмная атмосфера" },
+                { id: 12, name: "FORZA MOTORSPORT", rating: 8.9, genre: "action", cover: "🏎️", year: 2023, review: "Симулятор мечты" },
+                { id: 13, name: "MARVEL'S MIDNIGHT SUNS", rating: 8.4, genre: "strategy", cover: "🃏", year: 2022, review: "Тактическая RPG" },
+                { id: 14, name: "CALL OF DUTY MW3", rating: 7.5, genre: "action", cover: "🔫", year: 2023, review: "Классический шутер" },
+                { id: 15, name: "ALAN WAKE 2", rating: 9.4, genre: "horror", cover: "📖", year: 2023, review: "Психологический хоррор" },
+                { id: 16, name: "SUPER MARIO WONDER", rating: 9.6, genre: "arcade", cover: "🍄", year: 2023, review: "Чистое веселье" },
+                { id: 17, name: "LIES OF P", rating: 8.6, genre: "action", cover: "🤖", year: 2023, review: "Соулслайк-шедевр" },
+                { id: 18, name: "ARMORED CORE VI", rating: 8.7, genre: "action", cover: "🤖", year: 2023, review: "Мехи в огне" },
+                { id: 19, name: "FINAL FANTASY XVI", rating: 9.0, genre: "rpg", cover: "⚔️", year: 2023, review: "Эпичное фэнтези" },
+                { id: 20, name: "PAYDAY 3", rating: 7.2, genre: "action", cover: "💰", year: 2023, review: "Кооперативный шутер" },
+                { id: 21, name: "MORTAL KOMBAT 1", rating: 8.9, genre: "arcade", cover: "💀", year: 2023, review: "Жестокий файтинг" },
+                { id: 22, name: "ATOMIC HEART", rating: 7.8, genre: "action", cover: "🤖", year: 2023, review: "Советский биошик" },
+                { id: 23, name: "WO LONG FALLEN DYNASTY", rating: 8.3, genre: "action", cover: "⚔️", year: 2023, review: "Династический соулслайк" },
+                { id: 24, name: "HI-FI RUSH", rating: 9.1, genre: "arcade", cover: "🎸", year: 2023, review: "Ритм-экшен" },
+                { id: 25, name: "OCTOPATH TRAVELER II", rating: 8.8, genre: "rpg", cover: "📚", year: 2023, review: "HD-2D шедевр" },
+                { id: 26, name: "FIRE EMBLEM ENGAGE", rating: 8.5, genre: "strategy", cover: "⚔️", year: 2023, review: "Тактическая RPG" },
+                { id: 27, name: "WILD HEARTS", rating: 7.9, genre: "action", cover: "🐺", year: 2023, review: "Охота на монстров" },
+                { id: 28, name: "HARRY POTTER QUIDDITCH", rating: 6.8, genre: "arcade", cover: "🧹", year: 2023, review: "Спортивная аркада" },
+                { id: 29, name: "THE OUTLAST TRIALS", rating: 8.2, genre: "horror", cover: "🔦", year: 2023, review: "Кооперативный хоррор" },
+                { id: 30, name: "AMNESIA THE BUNKER", rating: 8.1, genre: "horror", cover: "🏃", year: 2023, review: "Иммерсивный хоррор" },
+                { id: 31, name: "STRAY", rating: 9.2, genre: "adventure", cover: "🐱", year: 2022, review: "Котик в киберпанке" },
+                { id: 32, name: "VAMPIRE SURVIVORS", rating: 9.4, genre: "arcade", cover: "🧛", year: 2022, review: "Казуальная аркада" },
+                { id: 33, name: "CULT OF THE LAMB", rating: 8.9, genre: "strategy", cover: "🐑", year: 2022, review: "Менеджмент секты" },
+                { id: 34, name: "SIFU", rating: 9.1, genre: "action", cover: "🥋", year: 2022, review: "Кунг-фу экшен" },
+                { id: 35, name: "NEON WHITE", rating: 9.0, genre: "arcade", cover: "⚡", year: 2022, review: "Спидраннер" },
+                { id: 36, name: "TUNIC", rating: 9.2, genre: "adventure", cover: "🦊", year: 2022, review: "Зельдеподобная" },
+                { id: 37, name: "HADES", rating: 9.8, genre: "action", cover: "⚡", year: 2020, review: "Рогалик-шедевр" },
+                { id: 38, name: "DISCO ELYSIUM", rating: 9.7, genre: "rpg", cover: "🧠", year: 2019, review: "Детективная RPG" },
+                { id: 39, name: "HOLLOW KNIGHT", rating: 9.6, genre: "action", cover: "🪲", year: 2017, review: "Метроидвания" },
+                { id: 40, name: "CELESTE", rating: 9.5, genre: "arcade", cover: "⛰️", year: 2018, review: "Платформер" },
+                { id: 41, name: "DEAD CELLS", rating: 9.3, genre: "action", cover: "⚔️", year: 2018, review: "Рогалик" },
+                { id: 42, name: "THE WITCHER 3", rating: 9.8, genre: "rpg", cover: "🐺", year: 2015, review: "Легендарная RPG" },
+                { id: 43, name: "RED DEAD REDEMPTION 2", rating: 9.9, genre: "action", cover: "🤠", year: 2018, review: "Вестерн-шедевр" },
+                { id: 44, name: "GOD OF WAR RAGNAROK", rating: 9.7, genre: "action", cover: "🪓", year: 2022, review: "Эпичное завершение" },
+                { id: 45, name: "THE LAST OF US PART II", rating: 9.5, genre: "action", cover: "🏹", year: 2020, review: "Эмоциональный экшен" },
+                { id: 46, name: "GHOST OF TSUSHIMA", rating: 9.6, genre: "action", cover: "⚔️", year: 2020, review: "Самурайский экшен" },
+                { id: 47, name: "SEKIRO SHADOWS DIE TWICE", rating: 9.7, genre: "action", cover: "⚔️", year: 2019, review: "Соулслайк" },
+                { id: 48, name: "BLOODBORNE", rating: 9.8, genre: "action", cover: "🔫", year: 2015, review: "Готический шедевр" }
+            ];
+
+            // DOM элементы
+            const reviewsGrid = document.getElementById('reviewsGrid');
+            const paginationDiv = document.getElementById('pagination');
+            const searchInput = document.getElementById('searchInput');
+            const clearSearchBtn = document.getElementById('clearSearch');
+            const sortSelect = document.getElementById('sortSelect');
+            const ratingFilter = document.getElementById('ratingFilter');
+            const genreFilter = document.getElementById('genreFilter');
+            const resultsCountSpan = document.querySelector('#resultsCount span');
+
+            let currentPage = 1;
+            const gamesPerPage = 12;
+            let filteredGames = [...gamesDatabase];
+
+            // Функция отображения звёзд
+            function renderRatingStars(rating) {
+                const fullStars = Math.floor(rating);
+                let stars = '';
+                for (let i = 0; i < fullStars; i++) stars += '⭐';
+                if (rating % 1 >= 0.5) stars += '½';
+                return stars || '☆☆';
+            }
+
+            function getGenreName(genre) {
+                const genres = { action: 'ЭКШН', rpg: 'RPG', adventure: 'ПРИКЛЮЧЕНИЯ', strategy: 'СТРАТЕГИИ', horror: 'ХОРРОР', arcade: 'АРКАДА' };
+                return genres[genre] || genre;
+            }
+
+            function renderGames() {
+                let filtered = [...gamesDatabase];
+                const searchTerm = searchInput.value.toLowerCase().trim();
+                if (searchTerm) filtered = filtered.filter(g => g.name.toLowerCase().includes(searchTerm));
+                const ratingMin = parseInt(ratingFilter.value);
+                if (ratingFilter.value !== 'all') filtered = filtered.filter(g => g.rating >= ratingMin);
+                const genre = genreFilter.value;
+                if (genre !== 'all') filtered = filtered.filter(g => g.genre === genre);
+
+                const sortBy = sortSelect.value;
+                switch(sortBy) {
+                    case 'name-asc': filtered.sort((a,b) => a.name.localeCompare(b.name)); break;
+                    case 'name-desc': filtered.sort((a,b) => b.name.localeCompare(a.name)); break;
+                    case 'rating-desc': filtered.sort((a,b) => b.rating - a.rating); break;
+                    case 'rating-asc': filtered.sort((a,b) => a.rating - b.rating); break;
+                    default: filtered = [...gamesDatabase];
+                }
+                filteredGames = filtered;
+                resultsCountSpan.textContent = filteredGames.length;
+
+                const totalPages = Math.ceil(filteredGames.length / gamesPerPage);
+                const start = (currentPage - 1) * gamesPerPage;
+                const end = start + gamesPerPage;
+                const currentGames = filteredGames.slice(start, end);
+
+                reviewsGrid.innerHTML = currentGames.map(game => `
+                    <div class="review-card" data-id="${game.id}">
+                        <div class="review-cover"><span class="cover-icon">${game.cover}</span></div>
+                        <div class="review-info">
+                            <h3 class="game-title">${game.name}</h3>
+                            <div class="game-rating">
+                                <span class="rating-stars">${renderRatingStars(game.rating)}</span>
+                                <span class="rating-value">${game.rating.toFixed(1)}</span>
+                            </div>
+                            <div class="game-meta">
+                                <span class="game-genre">${getGenreName(game.genre)}</span>
+                                <span class="game-year">${game.year}</span>
+                            </div>
+                            <p class="game-review-preview">${game.review}</p>
+                            <button class="read-review-btn" data-id="${game.id}">ЧИТАТЬ ОБЗОР →</button>
+                        </div>
+                    </div>
+                `).join('');
+
+                renderPagination(totalPages);
+            }
+
+            function renderPagination(totalPages) {
+                paginationDiv.innerHTML = '';
+                if (totalPages <= 1) return;
+                const prevBtn = document.createElement('span');
+                prevBtn.className = 'page-number';
+                prevBtn.textContent = '◀';
+                prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderGames(); window.scrollTo({ top: 400, behavior: 'smooth' }); } };
+                paginationDiv.appendChild(prevBtn);
+
+                let startPage = Math.max(1, currentPage - 2);
+                let endPage = Math.min(totalPages, startPage + 4);
+                if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
+                for (let i = startPage; i <= endPage; i++) {
+                    const pageBtn = document.createElement('span');
+                    pageBtn.className = 'page-number';
+                    if (i === currentPage) pageBtn.classList.add('active');
+                    pageBtn.textContent = i;
+                    pageBtn.onclick = () => { currentPage = i; renderGames(); window.scrollTo({ top: 400, behavior: 'smooth' }); };
+                    paginationDiv.appendChild(pageBtn);
+                }
+                const nextBtn = document.createElement('span');
+                nextBtn.className = 'page-number';
+                nextBtn.textContent = '▶';
+                nextBtn.onclick = () => { if (currentPage < totalPages) { currentPage++; renderGames(); window.scrollTo({ top: 400, behavior: 'smooth' }); } };
+                paginationDiv.appendChild(nextBtn);
+            }
+
+            // Обработчики
+            searchInput.addEventListener('input', () => { currentPage = 1; renderGames(); });
+            clearSearchBtn.addEventListener('click', () => { searchInput.value = ''; currentPage = 1; renderGames(); });
+            sortSelect.addEventListener('change', () => { currentPage = 1; renderGames(); });
+            ratingFilter.addEventListener('change', () => { currentPage = 1; renderGames(); });
+            genreFilter.addEventListener('change', () => { currentPage = 1; renderGames(); });
+
+            reviewsGrid.addEventListener('click', (e) => {
+                if (e.target.classList.contains('read-review-btn')) {
+                    const gameId = e.target.dataset.id;
+                    const game = gamesDatabase.find(g => g.id == gameId);
+                    if (game) alert(`🔍 ОБЗОР: ${game.name}\n\n⭐ Рейтинг: ${game.rating}\n📝 ${game.review}\n\n(Полный обзор откроется в новой странице)`);
+                }
+            });
+
+            // Онлайн-счётчик
+            let online = 128;
+            const onlineSpan = document.getElementById('onlineCount');
+            if (onlineSpan) {
+                setInterval(() => {
+                    const change = Math.floor(Math.random() * 5) - 2;
+                    online = Math.max(100, Math.min(200, online + change));
+                    onlineSpan.textContent = online;
+                }, 5000);
+            }
+
+            // Кнопка "Присоединиться"
+            const joinBtn = document.getElementById('joinBtn');
+            if (joinBtn) {
+                joinBtn.addEventListener('click', () => {
+                    alert('Добро пожаловать в Retro Game Forum! (Здесь будет регистрация)');
+                    document.body.style.backgroundColor = '#0f0';
+                    setTimeout(() => document.body.style.backgroundColor = '#000', 100);
+                });
+            }
+
+            // Эффект тряски при клике на навигацию и демо
+            document.querySelectorAll('nav a').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (!link.classList.contains('active')) {
+                        document.body.style.animation = 'shake 0.2s';
+                        setTimeout(() => document.body.style.animation = '', 200);
+                    }
+                    alert('🌟 Демо-версия портала! Раздел в разработке 🌟');
+                });
+            });
+
+            // Социальные ссылки
+            document.querySelectorAll('.social-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    alert('👾 Социальные сети в разработке. Следите за новостями!');
+                });
+            });
+
+            // Помехи ЭЛТ
+            setInterval(() => {
+                const crt = document.querySelector('.crt');
+                if (crt && Math.random() > 0.9) {
+                    crt.style.opacity = '0.3';
+                    setTimeout(() => { if (crt) crt.style.opacity = '1'; }, 100);
+                }
+            }, 3000);
+
+            // Старт
+            renderGames();
+        })();
+    </script>
+</body>
+</html>
