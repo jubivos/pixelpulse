@@ -12,4 +12,6 @@ class Review < ApplicationRecord
     }
 
     validates :rating, presence: true
+    validates :user_id, uniqueness: { scope: :game_id }
+    validates :rating, inclusion: { in: 1..10 }
 end
