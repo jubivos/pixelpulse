@@ -58,7 +58,7 @@ class ReviewsController < ApplicationController
     end
   end
 
-  # ❌ удалить
+  
   def destroy
     @review.destroy
     head :no_content
