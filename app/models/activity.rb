@@ -1,6 +1,24 @@
 class Activity < ApplicationRecord
-    belongs_to :user
-    belongs_to :target, polymorphic: true, optional: true
+  belongs_to :user
+  belongs_to :target, polymorphic: true
 
-    validates :action, presence: true
+  ACTIONS = %w[
+    login
+    create_review
+    comment
+    like
+  ].freeze
+
+  def action_human
+    case action
+    when "user.liked.review"
+      "liked a review"
+    when "user.commented.news"
+      "commented on news"
+    else
+      action
+    end
+  end
+
+  validates :action, presence: true, inclusion: { in: ACTIONS }
 end
