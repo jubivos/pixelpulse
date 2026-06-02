@@ -11,6 +11,18 @@ class Review < ApplicationRecord
     published: "published"
     }
 
+    after_create :create_activity
+
+
+    private
+    
+    return if likeable.user_id == user_id
+
+    Activity.create!(
+        user: user,
+        action: "user.created.review",
+        target: self
+    )
     validates :rating, presence: true
     validates :user_id, uniqueness: { scope: :game_id }
     validates :rating, inclusion: { in: 1..10 }
