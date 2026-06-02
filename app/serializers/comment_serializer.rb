@@ -4,24 +4,29 @@ class CommentSerializer
   end
 
   def as_json
-    @comments.map { |comment| serialize(comment) }
+    @comments.map { |comment| serialize_comment(comment) }
   end
 
   private
 
-  def serialize(comment)
+  def serialize_comment(comment)
     {
       id: comment.id,
       content: comment.content,
+      created_at: comment.created_at,
 
       user: {
         id: comment.user.id,
         nickname: comment.user.nickname
       },
 
-      created_at: comment.created_at,
-
-      replies: comment.replies.map { |reply| serialize(reply) }
+      replies: serialize_replies(comment.replies)
     }
+  end
+
+  def serialize_replies(replies)
+    return [] if replies.empty?
+
+    replies.map { |reply| serialize_comment(reply) }
   end
 end

@@ -1,43 +1,48 @@
 class LikesController < ApplicationController
   before_action :authenticate_user_from_token!
 
-  def create
-    like = current_user.likes.build(like_params)
+  def toggle
+    likeable_type = params[:likeable_type]
+    likeable_id = params[:likeable_id]
 
-    if like.save
-      render json: like_response(like), status: :created
-    else
-      render json: like.errors, status: :unprocessable_entity
+
+    unless %w[News Review].include?(likeable_type)
+      return render json: ApiResponse.error(
+        message: "Invalid likeable type"
+      ), status: :unprocessable_entity
     end
-  end
 
-  def destroy
-    like = current_user.likes.find_by(
-      likeable_type: params[:likeable_type],
-      likeable_id: params[:likeable_id]
+    like = Like.find_by(
+      user_id: current_user.id,
+      likeable_type: likeable_type,
+      likeable_id: likeable_id
     )
 
-    return render json: { error: "Not found" }, status: :not_found unless like
+    if like
+      like.destroy
 
-    like.destroy
-    head :no_content
-  end
+      render json: ApiResponse.success(
+        data: {
+          liked: false
+        }
+      )
+    else
+      like = current_user.likes.build(
+        likeable_type: likeable_type,
+        likeable_id: likeable_id
+      )
 
-  private
-
-  def like_params
-    params.require(:like).permit(
-      :likeable_type,
-      :likeable_id
-    )
-  end
-
-  def like_response(like)
-    {
-      id: like.id,
-      likeable_type: like.likeable_type,
-      likeable_id: like.likeable_id,
-      user_id: like.user_id
-    }
+      if like.save
+        render json: ApiResponse.success(
+          data: {
+            liked: true
+          }
+        )
+      else
+        render json: ApiResponse.error(
+          message: like.errors.full_messages.join(", ")
+        ), status: :unprocessable_entity
+      end
+    end
   end
 end

@@ -8,7 +8,9 @@ class CommentsController < ApplicationController
       .root
       .includes(:user, replies: :user)
 
-    render json: CommentSerializer.new(comments).as_json
+    render json: ApiResponse.success(
+      data: CommentSerializer.new(comments).as_json
+    )
   end
 
   def create
@@ -16,15 +18,22 @@ class CommentsController < ApplicationController
     comment.user = current_user
 
     if comment.save
-      render json: comment, status: :created
+      render json: ApiResponse.success(
+        data: CommentSerializer.new(comment).as_json
+      ), status: :created
     else
-      render json: comment.errors, status: :unprocessable_entity
+      render json: ApiResponse.error(
+        message: comment.errors.full_messages.join(", ")
+      ), status: :unprocessable_entity
     end
   end
 
   def destroy
     unless @comment.user_id == current_user.id || current_user&.role&.name == "admin"
-      return render json: { error: "Forbidden" }, status: :forbidden
+      return render json: ApiResponse.error(
+        message: "Forbidden",
+        code: "FORBIDDEN"
+      ), status: :forbidden
     end
 
     @comment.destroy

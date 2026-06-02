@@ -12,14 +12,24 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   # root "posts#index"
   devise_for :users
-    resources :games
+  resources :games
   resources :news do
     resources :comments, only: [:index, :create]
   end
-
   resources :reviews do
     resources :comments, only: [:index, :create]
   end
   resources :comments, only: [:destroy]
   resources :likes, only: [:create, :destroy]
+  resources :likes, only: [] do
+    collection do
+      post :toggle
+    end
+  end
+  resources :activities, only: [:index]
+  resources :notifications, only: [:index] do
+    member do
+      patch :mark_as_read
+    end
+  end
 end
