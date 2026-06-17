@@ -4,15 +4,21 @@ class NotificationsController < ApplicationController
   def index
     notifications = current_user.notifications
       .includes(:actor, :notifiable)
-      .latest
+      .order(created_at: :desc)
 
-    render json: NotificationSerializer.new(notifications).as_json
+    render json: ApiResponse.success(
+      data: NotificationSerializer.new(notifications).as_json
+    )
   end
 
   def mark_as_read
     notification = current_user.notifications.find(params[:id])
     notification.update(read: true)
 
-    head :no_content
+    render json: ApiResponse.success(
+      data: {
+        read: true
+      }
+    )
   end
 end

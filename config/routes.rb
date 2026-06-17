@@ -38,4 +38,13 @@ Rails.application.routes.draw do
       patch :mark_as_read
     end
   end
+  namespace :admin do
+    get "dashboard", to: "dashboard#show"
+
+    resources :users, only: [:index, :show, :destroy]
+    resources :news, only: [:index, :destroy]
+    resources :games, only: [:index, :destroy]
+    resources :reviews, only: [:index, :destroy]
+    resources :comments, only: [:index, :destroy]
+  end
 end

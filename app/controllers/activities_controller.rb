@@ -5,7 +5,7 @@ class ActivitiesController < ApplicationController
     page = params[:page].to_i <= 0 ? 1 : params[:page].to_i
     per_page = params[:per_page].to_i <= 0 ? 20 : params[:per_page].to_i
 
-    base = Activity.includes(:user, :subject).latest
+    base = Activity.includes(:user, :target).order(created_at: :desc)
 
     total = base.count
 

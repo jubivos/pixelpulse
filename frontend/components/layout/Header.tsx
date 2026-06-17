@@ -125,10 +125,48 @@ export default function Header() {
           </li>
 
           <li>
-            <Link href="/forum" className="nav-link" data-text="ФОРУМ">
+            <Link
+              href="/forum"
+              className={`nav-link ${isActive("/forum") ? "active" : ""}`}
+              data-text="ФОРУМ"
+            >
               ФОРУМ
             </Link>
           </li>
+
+          <li>
+            <Link
+              href="/activities"
+              className={`nav-link ${isActive("/activities") ? "active" : ""}`}
+              data-text="АКТИВНОСТИ"
+            >
+              АКТИВНОСТИ
+            </Link>
+          </li>
+
+          {user && (
+            <li>
+              <Link
+                href="/notifications"
+                className={`nav-link ${isActive("/notifications") ? "active" : ""}`}
+                data-text="УВЕДОМЛЕНИЯ"
+              >
+                УВЕДОМЛЕНИЯ
+              </Link>
+            </li>
+          )}
+
+          {user?.role === "admin" && (
+            <li>
+              <Link
+                href="/admin"
+                className={`nav-link ${isActive("/admin") ? "active" : ""}`}
+                data-text="АДМИНКА"
+              >
+                АДМИНКА
+              </Link>
+            </li>
+          )}
         </ul>
       </nav>
     </header>

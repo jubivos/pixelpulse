@@ -20,30 +20,59 @@ class ActivitySerializer
         nickname: activity.user.nickname
       },
 
-      subject: serialize_subject(activity)
+      target: serialize_target(activity)
     }
   end
 
-  def serialize_subject(activity)
-    case activity.subject
+  def serialize_target(activity)
+    case activity.target
     when Review
       {
         type: "Review",
-        id: activity.subject.id,
-        content: activity.subject.content,
-        game_id: activity.subject.game_id
+        id: activity.target.id,
+        content: activity.target.content,
+        game_id: activity.target.game_id,
+        title: activity.target.game.title,
+        url: "/games/#{activity.target.game_id}"
       }
     when News
       {
         type: "News",
-        id: activity.subject.id,
-        title: activity.subject.title
+        id: activity.target.id,
+        title: activity.target.title,
+        url: "/news/#{activity.target.id}"
+      }
+    when Comment
+      {
+        type: "Comment",
+        id: activity.target.id,
+        content: activity.target.content,
+        url: comment_url(activity.target)
+      }
+    when Game
+      {
+        type: "Game",
+        id: activity.target.id,
+        title: activity.target.title,
+        url: "/games/#{activity.target.id}"
       }
     else
       {
-        type: activity.subject_type,
-        id: activity.subject_id
+        type: activity.target_type,
+        id: activity.target_id,
+        url: "#"
       }
+    end
+  end
+
+  def comment_url(comment)
+    case comment.commentable
+    when News
+      "/news/#{comment.commentable.id}"
+    when Review
+      "/games/#{comment.commentable.game_id}"
+    else
+      "#"
     end
   end
 end
