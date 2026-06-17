@@ -1,5 +1,6 @@
 class ApplicationController < ActionController::API
   before_action :authenticate_user_from_token!
+  after_action :track_user_activity
 
   rescue_from ActiveRecord::RecordNotFound do
     render json: ApiResponse.error(
@@ -21,14 +22,22 @@ class ApplicationController < ActionController::API
 
   def authenticate_user_from_token!
     token = request.headers["Authorization"]&.split(" ")&.last
-
     @current_user = User.find_by(auth_token: token)
 
-    unless @current_user
-      render json: ApiResponse.error(
-        message: "Unauthorized",
-        code: "UNAUTHORIZED"
-      ), status: :unauthorized
-    end
+    return if @current_user
+
+    render json: ApiResponse.error(
+      message: "Unauthorized",
+      code: "UNAUTHORIZED"
+    ), status: :unauthorized
+
+    false
+  end
+
+  def track_user_activity
+    return unless current_user
+    return unless response.successful?
+
+    current_user.update_column(:last_activity_at, Time.current)
   end
 end

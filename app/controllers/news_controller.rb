@@ -35,7 +35,7 @@ class NewsController < ApplicationController
   end
 
   def show
-    root_comments = @news.comments.where(parent_id: nil)
+    comments = @news.comments.root.includes(:user, replies: :user)
 
     render json: ApiResponse.success(
       data: {
@@ -44,18 +44,17 @@ class NewsController < ApplicationController
         content: @news.content,
         published_at: @news.published_at,
 
+        cover_image_url: @news.news_images.find(&:is_cover)&.image_url,
+
         author: {
           id: @news.user.id,
           nickname: @news.user.nickname
         },
 
-        images: @news.news_images
-          .sort_by(&:position)
-          .map(&:image_url),
-
         likes_count: @news.likes.size,
+        comments_count: @news.comments.size,
 
-        comments: build_comment_tree(root_comments)
+        comments: CommentSerializer.new(comments).as_json
       }
     )
   end
@@ -93,7 +92,7 @@ class NewsController < ApplicationController
 
   def set_news
     @news = News
-      .includes(:user, :news_images, comments: [:user, :replies])
+      .includes(:user, :news_images, :likes, comments: [:user, replies: :user])
       .find(params[:id])
   end
 

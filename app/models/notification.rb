@@ -1,18 +1,10 @@
-class NotificationsController < ApplicationController
-  before_action :authenticate_user_from_token!
+class Notification < ApplicationRecord
+  belongs_to :user
+  belongs_to :actor, class_name: "User"
+  belongs_to :notifiable, polymorphic: true
 
-  def index
-    notifications = current_user.notifications
-      .includes(:actor, :notifiable)
-      .latest
+  scope :latest, -> { order(created_at: :desc) }
+  scope :unread, -> { where(read: false) }
 
-    render json: NotificationSerializer.new(notifications).as_json
-  end
-
-  def mark_as_read
-    notification = current_user.notifications.find(params[:id])
-    notification.update(read: true)
-
-    head :no_content
-  end
+  validates :action, presence: true
 end

@@ -17,6 +17,7 @@ class NewsSerializer
     {
       id: n.id,
       title: n.title,
+      content: n.content,
 
       cover_image_url: cover_image(n),
 
@@ -27,7 +28,8 @@ class NewsSerializer
 
       published_at: n.published_at,
 
-      likes_count: n.likes.size
+      likes_count: n.likes.size,
+      comments_count: n.comments.size
     }
   end
 

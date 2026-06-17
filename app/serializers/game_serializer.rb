@@ -24,7 +24,9 @@ class GameSerializer
       genres: game.genres.map(&:name),
       tags: game.tags.map(&:name),
 
-      reviews_count: game.reviews.size
+      reviews_count: game.reviews.size,
+
+      average_rating: game.reviews.average(:rating)&.to_f&.round(1) || 0
     }
   end
 end

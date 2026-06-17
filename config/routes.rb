@@ -12,6 +12,12 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   # root "posts#index"
   devise_for :users
+  post "/auth/register", to: "auth#register"
+  post "/auth/login", to: "auth#login"
+  get "/auth/me", to: "auth#me"
+
+  resource :profile, only: [:show]
+  get "/online", to: "online#show"
   resources :games
   resources :news do
     resources :comments, only: [:index, :create]

@@ -53,6 +53,7 @@ class GamesController < ApplicationController
             id: r.id,
             rating: r.rating,
             content: r.content,
+            likes_count: r.likes.size,
             user: {
               id: r.user.id,
               nickname: r.user.nickname

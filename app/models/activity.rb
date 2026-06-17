@@ -11,10 +11,12 @@ class Activity < ApplicationRecord
 
   def action_human
     case action
-    when "user.liked.review"
-      "liked a review"
-    when "user.commented.news"
-      "commented on news"
+    when "like"
+      "liked something"
+    when "comment"
+      "commented"
+    when "create_review"
+      "created a review"
     else
       action
     end

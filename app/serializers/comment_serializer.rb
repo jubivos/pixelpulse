@@ -4,7 +4,11 @@ class CommentSerializer
   end
 
   def as_json
-    @comments.map { |comment| serialize_comment(comment) }
+    if @comments.is_a?(Enumerable)
+      @comments.map { |comment| serialize_comment(comment) }
+    else
+      serialize_comment(@comments)
+    end
   end
 
   private

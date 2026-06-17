@@ -9,44 +9,27 @@ class Comment < ApplicationRecord
            foreign_key: "parent_id",
            dependent: :destroy
 
-  # scopes
   scope :root, -> { where(parent_id: nil) }
 
-
-  after_create :create_notification
-  after_create :create_activity
-
-  private
-
-  Activity.create!(
-    user: user,
-    action: "user.commented.#{commentable_type.downcase}",
-    target: commentable
-  )
-
-  # validations
   validates :content, presence: true
 
   validate :no_self_parent
   validate :max_depth
 
+  after_create :create_activity
+  after_create :create_notification
 
-  def create_notification
-    return if commentable.user_id == user_id
-
-    Notification.create!(
-      user_id: commentable.user_id,
-      actor: user,
-      action: "commented",
-      notifiable: self
-    )
-  end
+  private
 
   def no_self_parent
+    return if parent_id.blank? || id.blank?
+
     errors.add(:parent_id, "cannot be self") if parent_id == id
   end
 
   def max_depth
+    return if parent_id.blank?
+
     depth = 0
     current = parent
 
@@ -55,8 +38,26 @@ class Comment < ApplicationRecord
       current = current.parent
     end
 
-    if depth >= 3
-      errors.add(:base, "Max comment depth reached")
-    end
+    errors.add(:base, "Max comment depth reached") if depth >= 3
+  end
+
+  def create_activity
+    Activity.create!(
+      user: user,
+      action: "comment",
+      target: commentable
+    )
+  end
+
+  def create_notification
+    return unless commentable.respond_to?(:user_id)
+    return if commentable.user_id == user_id
+
+    Notification.create!(
+      user_id: commentable.user_id,
+      actor: user,
+      action: "commented",
+      notifiable: self
+    )
   end
 end

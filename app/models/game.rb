@@ -21,19 +21,24 @@ class Game < ApplicationRecord
     }
 
     scope :min_rating, ->(rating) {
-        joins(:reviews)
-        .group("games.id")
-        .having("AVG(reviews.rating) >= ?", rating)
         if rating.present?
+            joins(:reviews)
+            .group("games.id")
+            .having("AVG(reviews.rating) >= ?", rating)
+        else
+            all
+        end
     }
     scope :sorted, ->(sort) {
         case sort
-        when "rating"
-            left_joins(:reviews)
-            .group("games.id")
-            .order("AVG(reviews.rating) DESC")
-        when "newest"
-            order(release_date: :desc)
+        when "rating_desc"
+            joins(:reviews)
+                .group("games.id")
+                .order("AVG(reviews.rating) DESC")
+        when "rating_asc"
+            joins(:reviews)
+                .group("games.id")
+                .order("AVG(reviews.rating) ASC")
         else
             order(created_at: :desc)
         end
