@@ -1,10 +1,11 @@
-const API_URL = "http://172.24.238.248:3000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export async function apiFetch(
   endpoint: string,
   options: RequestInit = {}
 ) {
-  const token = localStorage.getItem("token");
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   const res = await fetch(`${API_URL}${endpoint}`, {
     ...options,
